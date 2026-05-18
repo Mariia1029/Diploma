@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"D:\\\\Diploma\\\\Project\\\\SkillCodeFront\\\\skillcode-client\\\\src\" -Recurse | ForEach-Object { $_.FullName })",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\Diploma\\\\Project\\\\SkillCodeFront\" -Recurse -Directory -Name | Where-Object { $_ -match 'backend|server|api' } | Select-Object -First 20)"
+    ]
+  }
+}

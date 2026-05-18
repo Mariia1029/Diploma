@@ -1,0 +1,213 @@
+@import './variables.css';
+
+/* ── TOOLBAR ───────────────────────────── */
+.pc-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.pc-filter-tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.pc-filter-tab {
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  transition: all 0.12s;
+}
+.pc-filter-tab:hover { color: var(--text-primary); background: var(--bg-hover); }
+.pc-filter-tab.active {
+  color: var(--accent);
+  background: rgba(74, 222, 128, 0.07);
+  border-color: var(--border-mid);
+}
+
+/* ── META ROW ──────────────────────────── */
+.pc-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.pc-meta-count {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.pc-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.pc-select-wrap .cs-trigger {
+  background: none;
+  border: none;
+  outline: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+}
+.pc-select-label { font-size: 10px; color: var(--text-faint); }
+.pc-spacer { flex: 1; }
+
+/* ── CARD GRID ─────────────────────────── */
+.pc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+/* ── CARD ──────────────────────────────── */
+.pc-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.12s, background 0.12s;
+}
+.pc-card:hover { border-color: var(--border-mid); background: var(--bg-hover); }
+
+.pc-ai-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 8px;
+  color: var(--accent);
+  background: var(--accent-glow);
+  border: 1px solid var(--border-mid);
+  border-radius: 3px;
+  padding: 1px 6px;
+  letter-spacing: 0.06em;
+}
+
+.pc-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.pc-card-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* ── CARD FOOTER ───────────────────────── */
+.pc-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  gap: 8px;
+}
+
+.pc-card-author {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: var(--text-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-author-icon {
+  font-size: 9px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.pc-card-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pc-card-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.pc-card-actions {
+  display: flex;
+  gap: 4px;
+}
+
+/* ── ICON BUTTONS ──────────────────────── */
+.pc-icon-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  background: none;
+  font-family: var(--mono);
+  transition: all 0.12s;
+}
+.pc-icon-btn:hover {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+.pc-icon-btn.pc-saved {
+  color: var(--accent);
+  border-color: var(--border-mid);
+  background: rgba(74, 222, 128, 0.07);
+}
+.pc-icon-btn.pc-saved:hover {
+  background: rgba(74, 222, 128, 0.12);
+  border-color: var(--accent);
+}
+
+.pc-save-msg {
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 4px 8px 0;
+  text-align: right;
+}
+
+/* ── EMPTY STATE ───────────────────────── */
+.pc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  gap: 12px;
+}
+.pc-empty-icon  { font-size: 28px; color: var(--text-faint); }
+.pc-empty-title { font-size: 13px; color: var(--text-muted); }
+.pc-empty-sub   { font-size: 11px; color: var(--text-faint); }

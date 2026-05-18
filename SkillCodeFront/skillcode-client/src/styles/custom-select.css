@@ -1,0 +1,60 @@
+.cs-root { position: relative; }
+
+.cs-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  padding: 0;
+}
+
+.cs-trigger:focus { outline: none; }
+.cs-trigger:disabled { opacity: 0.6; cursor: default; }
+
+.cs-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-arrow {
+  flex-shrink: 0;
+  margin-left: 6px;
+  font-size: 10px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.cs-dropdown {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 0;
+  min-width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-mid);
+  border-radius: 4px;
+  z-index: 200;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  overflow-y: auto;
+  max-height: 240px;
+}
+
+.cs-option {
+  padding: 8px 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s, color 0.1s;
+}
+
+.cs-option:hover {
+  background: var(--accent-glow2);
+  color: var(--accent);
+}
+
+.cs-option--selected { color: var(--accent); }
+.cs-option--selected:hover { background: var(--accent-glow2); }
