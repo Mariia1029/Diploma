@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SkillCode")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d0a9daf46830de20b9f1c01818ad523fc9e254ba")]
 [assembly: System.Reflection.AssemblyProductAttribute("SkillCode")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SkillCode")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import Pagination from '../common/Pagination';
 import { useAuth } from '../../context/AuthContext';
 import { searchUsers } from '../../api/sharesApi';
 import type { UserSearchResult } from '../../api/sharesApi';
@@ -213,12 +214,6 @@ function GroupTaskCard({ gt, currentUserId, currentUserRole, members, groupId, t
   const canSeeAllResults = isSharer && gt.collectResults;
   const canRemove = currentUserRole === 'Owner' || currentUserRole === 'Admin' || isSharer;
 
-  const memberMap = useMemo(() => {
-    const m: Record<string, GroupMemberResponse> = {};
-    members.forEach(mb => { m[mb.user.id] = mb; });
-    return m;
-  }, [members]);
-
   async function handleToggle() {
     if (!open && results === null) {
       setLoadingResults(true);
@@ -257,9 +252,11 @@ function GroupTaskCard({ gt, currentUserId, currentUserRole, members, groupId, t
       ]);
       const answerMap = Object.fromEntries(
         detail.answers.map(a => [a.taskItemId, {
+          id: a.id,
           userAnswer: a.userAnswer ?? null,
           isCorrect: a.isCorrect ?? null,
           earnedPoints: a.earnedPoints ?? null,
+          aiExplanation: a.aiExplanation ?? null,
         }]),
       );
       const sortedItems = [...fullTask.taskItems].sort((a, b) => a.orderIndex - b.orderIndex);
@@ -268,6 +265,8 @@ function GroupTaskCard({ gt, currentUserId, currentUserRole, members, groupId, t
         userAnswerJson: answerMap[item.id]?.userAnswer ?? null,
         isCorrect: answerMap[item.id]?.isCorrect ?? null,
         earnedPoints: answerMap[item.id]?.earnedPoints ?? null,
+        answerId: answerMap[item.id]?.id ?? '',
+        aiExplanation: answerMap[item.id]?.aiExplanation ?? null,
       }));
       const finishData = {
         id: detail.id, userId: detail.userId, taskId: detail.taskId,
@@ -508,13 +507,12 @@ function AddMemberModal({ groupId, token, canAssignAdmin, existingUserIds, onAdd
 interface AddTaskModalProps {
   groupId: string;
   token: string;
-  currentUserId: string;
   existingTaskIds: Set<string>;
   onAdded: (gt: GroupTaskResponse) => void;
   onClose: () => void;
 }
 
-function AddTaskModal({ groupId, token, currentUserId, existingTaskIds, onAdded, onClose }: AddTaskModalProps) {
+function AddTaskModal({ groupId, token, existingTaskIds, onAdded, onClose }: AddTaskModalProps) {
   const [tasks, setTasks] = useState<TaskDetailResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<TaskDetailResponse | null>(null);
@@ -989,7 +987,6 @@ function GroupDetail({ groupId, token, currentUserId, onBack, onRun, onGroupDele
         <AddTaskModal
           groupId={groupId}
           token={token}
-          currentUserId={currentUserId}
           existingTaskIds={existingTaskIds}
           onAdded={handleTaskAdded}
           onClose={() => setShowAddTask(false)}
@@ -1213,6 +1210,8 @@ export default function GroupsPage({ onTakeTest, onViewAttempt }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 9;
 
   const load = useCallback(async () => {
     if (!accessToken) return;
@@ -1231,6 +1230,9 @@ export default function GroupsPage({ onTakeTest, onViewAttempt }: Props) {
     if (!search) return groups;
     return groups.filter(g => g.name.toLowerCase().includes(search.toLowerCase()));
   }, [groups, search]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   if (!accessToken || !user) return null;
 
@@ -1263,10 +1265,10 @@ export default function GroupsPage({ onTakeTest, onViewAttempt }: Props) {
           <input
             placeholder="// пошук..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
-        <button className="btn-primary" onClick={() => setCreating(true)}>⬡ Нова група</button>
+        <button className="btn-create" onClick={() => setCreating(true)}>+ Нова група</button>
       </div>
 
       {loading ? (
@@ -1275,11 +1277,14 @@ export default function GroupsPage({ onTakeTest, onViewAttempt }: Props) {
           <div className="grp-empty-title">// завантаження...</div>
         </div>
       ) : filtered.length > 0 ? (
-        <div className="groups-grid">
-          {filtered.map(g => (
-            <GroupCard key={g.id} group={g} onClick={() => setSelectedId(g.id)} />
-          ))}
-        </div>
+        <>
+          <div className="groups-grid">
+            {paginated.map(g => (
+              <GroupCard key={g.id} group={g} onClick={() => setSelectedId(g.id)} />
+            ))}
+          </div>
+          <Pagination page={page} totalPages={totalPages} onPage={setPage} />
+        </>
       ) : (
         <div className="grp-empty-state">
           <div className="grp-empty-icon">⬡</div>

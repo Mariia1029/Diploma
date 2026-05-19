@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import '../../styles/my-content.css';
+import Pagination from '../common/Pagination';
 import { useAuth } from '../../context/AuthContext';
 import { getSavedTasks, unsaveTask } from '../../api/tasksApi';
 import { getAttemptsByTask, getAttemptAnswers, deleteAttempt } from '../../api/attemptsApi';
@@ -170,6 +171,8 @@ function SavedCard({ task, token, onTakeTest, onViewAttempt, onRemoved }: SavedC
           userAnswerJson: ans?.userAnswer ?? null,
           isCorrect: ans?.isCorrect ?? null,
           earnedPoints: ans?.earnedPoints ?? null,
+          answerId: ans?.id ?? '',
+          aiExplanation: ans?.aiExplanation ?? null,
         };
       });
       onViewAttempt({ task, questions, finishData: attempt });
@@ -380,6 +383,8 @@ export default function SavedContentPage({ onTakeTest, onViewAttempt }: Props) {
   const [error,   setError]   = useState<string | null>(null);
   const [filter,  setFilter]  = useState<Filter>('all');
   const [search,  setSearch]  = useState('');
+  const [page,    setPage]    = useState(1);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     if (!accessToken) return;
@@ -396,6 +401,9 @@ export default function SavedContentPage({ onTakeTest, onViewAttempt }: Props) {
     if (search) list = list.filter(t => t.title.toLowerCase().includes(search.toLowerCase()));
     return list;
   }, [tasks, filter, search]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const FILTERS: { id: Filter; label: string }[] = [
     { id: 'all',        label: '// всі' },
@@ -414,7 +422,7 @@ export default function SavedContentPage({ onTakeTest, onViewAttempt }: Props) {
             <div
               key={f.id}
               className={`mc-filter-tab${filter === f.id ? ' active' : ''}`}
-              onClick={() => setFilter(f.id)}
+              onClick={() => { setFilter(f.id); setPage(1); }}
             >
               {f.label}
             </div>
@@ -426,7 +434,7 @@ export default function SavedContentPage({ onTakeTest, onViewAttempt }: Props) {
           <input
             placeholder="// пошук..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
       </div>
@@ -460,16 +468,21 @@ export default function SavedContentPage({ onTakeTest, onViewAttempt }: Props) {
         </div>
       )}
 
-      {!loading && !error && filtered.map(task => (
-        <SavedCard
-          key={task.id}
-          task={task}
-          token={token}
-          onTakeTest={onTakeTest}
-          onViewAttempt={onViewAttempt}
-          onRemoved={id => setTasks(prev => prev.filter(t => t.id !== id))}
-        />
-      ))}
+      {!loading && !error && filtered.length > 0 && (
+        <>
+          {paginated.map(task => (
+            <SavedCard
+              key={task.id}
+              task={task}
+              token={token}
+              onTakeTest={onTakeTest}
+              onViewAttempt={onViewAttempt}
+              onRemoved={id => setTasks(prev => prev.filter(t => t.id !== id))}
+            />
+          ))}
+          <Pagination page={page} totalPages={totalPages} onPage={setPage} />
+        </>
+      )}
 
     </div>
   );

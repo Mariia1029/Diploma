@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { TaskDetailResponse, TaskItemResponse } from '../../types/task';
 import type { TaskType } from '../../types/template';
 import type { AttemptResponse } from '../../api/attemptsApi';
-import { explainAnswer } from '../../api/aiApi';
+import { explainAttemptAnswer } from '../../api/attemptsApi';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/solve-task.css';
 import '../../styles/view-attempt.css';
@@ -13,6 +13,8 @@ export interface QuestionView {
   userAnswerJson: string | null;
   isCorrect: boolean | null;
   earnedPoints: number | null;
+  answerId: string;
+  aiExplanation: string | null;
 }
 
 export interface ViewAttemptInput {
@@ -307,7 +309,13 @@ export default function ViewAttemptPage({ task, questions, finishData, onBack }:
   const token = accessToken ?? '';
 
   const [qIdx,      setQIdx]      = useState(0);
-  const [aiResults, setAiResults] = useState<Record<string, string>>({});
+  const [aiResults, setAiResults] = useState<Record<string, string>>(() =>
+    Object.fromEntries(
+      questions
+        .filter(q => q.aiExplanation)
+        .map(q => [q.item.id, q.aiExplanation!]),
+    ),
+  );
   const [aiLoading, setAiLoading] = useState<Record<string, boolean>>({});
 
   const q   = questions[qIdx];
@@ -320,15 +328,14 @@ export default function ViewAttemptPage({ task, questions, finishData, onBack }:
     if (aiResults[id] || aiLoading[id]) return;
     setAiLoading(prev => ({ ...prev, [id]: true }));
     try {
-      const res = await explainAnswer(token, {
-        question:     q.item.question,
-        questionType: q.item.type,
-        language:     task.language,
-        options:      q.item.options ?? null,
-        userAnswer:   q.userAnswerJson ?? 'null',
-        isCorrect:    q.isCorrect,
+      const res = await explainAttemptAnswer(token, finishData.id, q.answerId, {
+        question:      q.item.question,
+        userAnswer:    q.userAnswerJson,
+        correctAnswer: q.item.correctAnswer ?? '',
+        language:      task.language ?? null,
+        options:       q.item.options ?? null,
       });
-      setAiResults(prev => ({ ...prev, [id]: res.explanation }));
+      setAiResults(prev => ({ ...prev, [id]: res.aiExplanation ?? '' }));
     } catch {
       setAiResults(prev => ({ ...prev, [id]: '// не вдалося отримати пояснення' }));
     } finally {

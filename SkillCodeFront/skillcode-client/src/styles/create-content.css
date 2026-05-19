@@ -772,8 +772,13 @@
 }
 
 /* ── SAVE AS TEMPLATE ── */
-.save-template-check {
+.save-template-row {
   display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.save-template-check {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
@@ -784,9 +789,15 @@
   accent-color: var(--accent);
   width: 14px; height: 14px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .save-template-text {
   color: var(--text-muted);
+}
+.save-template-hint {
+  font-size: 10px;
+  color: var(--text-faint);
+  font-style: italic;
 }
 .save-template-title-input {
   margin-top: 8px;

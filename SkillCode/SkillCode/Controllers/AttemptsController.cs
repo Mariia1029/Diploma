@@ -121,4 +121,20 @@ public class AttemptsController : ControllerBase
         await _attemptService.DeleteAsync(userId, id, ct);
         return NoContent();
     }
+
+    [HttpPost("{attemptId:guid}/answers/{answerId:guid}/explain")]
+    [ProducesResponseType(typeof(AttemptAnswerResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<AttemptAnswerResponse>> ExplainAnswer(
+        Guid attemptId, Guid answerId,
+        [FromBody] ExplainAnswerRequest request, CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var answer = await _attemptService.ExplainAnswerAsync(userId, attemptId, answerId, request, ct);
+        return Ok(answer);
+    }
 }

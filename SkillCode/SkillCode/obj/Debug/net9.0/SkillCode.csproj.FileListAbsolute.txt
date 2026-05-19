@@ -115,3 +115,4 @@ D:\Diploma\Project\SkillCode\SkillCode\bin\Debug\net9.0\Microsoft.IdentityModel.
 D:\Diploma\Project\SkillCode\SkillCode\bin\Debug\net9.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
 D:\Diploma\Project\SkillCode\SkillCode\bin\Debug\net9.0\Microsoft.IdentityModel.Tokens.dll
 D:\Diploma\Project\SkillCode\SkillCode\bin\Debug\net9.0\System.IdentityModel.Tokens.Jwt.dll
+D:\Diploma\Project\SkillCode\SkillCode\obj\Debug\net9.0\SkillCode.sourcelink.json

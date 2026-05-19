@@ -10,8 +10,8 @@ const NAV_ITEMS: NavItemData[] = [
   { id: 'home',   icon: '⌂', label: '// головна',         section: 'main' },
   { id: 'create', icon: '+', label: '// створити контент', section: 'main' },
   { id: 'mine',   icon: '◈', label: '// мій контент',      section: 'main' },
-  { id: 'groups', icon: '⬡', label: '// групи',            section: 'social', badge: '3' },
-  { id: 'msgs',   icon: '✉', label: '// повідомлення',     section: 'social', badge: '7' },
+  { id: 'groups', icon: '⬡', label: '// групи',            section: 'social' },
+  { id: 'msgs',   icon: '✉', label: '// повідомлення',     section: 'social' },
   { id: 'saved',  icon: '◇', label: '// збережене',        section: 'social' },
   { id: 'public', icon: '◉', label: '// публічне',          section: 'social' },
 ];

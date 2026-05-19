@@ -8,4 +8,5 @@ public interface IAiService
     Task<GradeAnswerResponse> GradeAnswerAsync(GradeAnswerRequest request, CancellationToken ct);
     Task<GradeAnswerResponse> GradeFillBlankAsync(GradeFillBlankRequest request, CancellationToken ct);
     Task<bool> CheckFillBlankAsync(string question, string correctAnswer, string userAnswer, CancellationToken ct);
+    Task<string> ExplainAnswerAsync(ExplainAnswerRequest request, CancellationToken ct);
 }

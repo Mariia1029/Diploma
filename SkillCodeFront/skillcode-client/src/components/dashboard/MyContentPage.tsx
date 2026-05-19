@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import '../../styles/my-content.css';
+import Pagination from '../common/Pagination';
 import { useAuth } from '../../context/AuthContext';
 import { getMyTasks, deleteTask, setTaskStatus } from '../../api/tasksApi';
 import { getAttemptsByTask, getAttemptById, deleteAttempt } from '../../api/attemptsApi';
@@ -193,6 +194,8 @@ function TaskCard({ task, token, onTakeTest, onResumeAttempt, onViewAttempt, onD
           userAnswerJson: ans?.userAnswer ?? null,
           isCorrect: ans?.isCorrect ?? null,
           earnedPoints: ans?.earnedPoints ?? null,
+          answerId: ans?.id ?? '',
+          aiExplanation: ans?.aiExplanation ?? null,
         };
       });
       onViewAttempt({ task, questions, finishData: detail });
@@ -473,6 +476,8 @@ export default function MyContentPage({ onTakeTest, onResumeAttempt, onViewAttem
   const [filter,    setFilter]    = useState<Filter>('all');
   const [visFilter, setVisFilter] = useState<VisFilter>('all');
   const [search,    setSearch]    = useState('');
+  const [page,      setPage]      = useState(1);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     if (!accessToken) return;
@@ -491,6 +496,9 @@ export default function MyContentPage({ onTakeTest, onResumeAttempt, onViewAttem
     if (search) list = list.filter(t => t.title.toLowerCase().includes(search.toLowerCase()));
     return list;
   }, [tasks, filter, visFilter, search]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const totalItems  = tasks.reduce((s, t) => s + t.taskItems.length, 0);
   const aiCount     = tasks.filter(t => t.aiGenerated).length;
@@ -543,7 +551,7 @@ export default function MyContentPage({ onTakeTest, onResumeAttempt, onViewAttem
             <div
               key={f.id}
               className={`mc-filter-tab${filter === f.id ? ' active' : ''}`}
-              onClick={() => setFilter(f.id)}
+              onClick={() => { setFilter(f.id); setPage(1); }}
             >
               {f.label}
             </div>
@@ -555,7 +563,7 @@ export default function MyContentPage({ onTakeTest, onResumeAttempt, onViewAttem
             <div
               key={f.id}
               className={`mc-filter-tab${visFilter === f.id ? ' active' : ''}`}
-              onClick={() => setVisFilter(f.id)}
+              onClick={() => { setVisFilter(f.id); setPage(1); }}
             >
               {f.label}
             </div>
@@ -567,7 +575,7 @@ export default function MyContentPage({ onTakeTest, onResumeAttempt, onViewAttem
           <input
             placeholder="// пошук..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
       </div>
@@ -601,18 +609,23 @@ export default function MyContentPage({ onTakeTest, onResumeAttempt, onViewAttem
         </div>
       )}
 
-      {!loading && !error && filtered.map(task => (
-        <TaskCard
-          key={task.id}
-          task={task}
-          token={token}
-          onTakeTest={onTakeTest}
-          onResumeAttempt={onResumeAttempt}
-          onViewAttempt={onViewAttempt}
-          onDeleted={id => setTasks(prev => prev.filter(t => t.id !== id))}
-          onStatusChanged={(id, status) => setTasks(prev => prev.map(t => t.id === id ? { ...t, status } : t))}
-        />
-      ))}
+      {!loading && !error && filtered.length > 0 && (
+        <>
+          {paginated.map(task => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              token={token}
+              onTakeTest={onTakeTest}
+              onResumeAttempt={onResumeAttempt}
+              onViewAttempt={onViewAttempt}
+              onDeleted={id => setTasks(prev => prev.filter(t => t.id !== id))}
+              onStatusChanged={(id, status) => setTasks(prev => prev.map(t => t.id === id ? { ...t, status } : t))}
+            />
+          ))}
+          <Pagination page={page} totalPages={totalPages} onPage={setPage} />
+        </>
+      )}
 
     </div>
   );

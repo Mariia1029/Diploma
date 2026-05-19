@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import Pagination from '../common/Pagination';
 import { getTemplates, createTemplate, deleteTemplate } from '../../api/templatesApi';
 import type { TemplateDetailResponse, TemplateItemResponse, TaskType } from '../../types/template';
 import { createTask, LANG_TO_ENUM, generateTask, LANG_TO_AI_LANG } from '../../api/tasksApi';
@@ -413,6 +414,14 @@ function Step1({ method, template, setTemplate, templates, loadingTemplates, onN
   onBack: () => void; onNext: () => void;
 }) {
   const isAI = method === 'ai';
+  const PAGE_SIZE = 9;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.ceil(templates.length / PAGE_SIZE);
+  const paginated  = useMemo(
+    () => templates.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [templates, page],
+  );
+
   return (
     <div className="wizard-section">
       <div className="wiz-section-title">
@@ -430,28 +439,31 @@ function Step1({ method, template, setTemplate, templates, loadingTemplates, onN
       ) : templates.length === 0 ? (
         <div style={{ fontSize:11, color:'var(--text-faint)', padding:'12px 0' }}>// шаблони відсутні — створіть перший</div>
       ) : (
-        <div className="template-grid">
-          {templates.map((t) => (
-            <div key={t.id} className={`template-card${template===t.id?' tpl-selected':''}`} onClick={()=>setTemplate(t.id)}>
-              {template===t.id && <div className="tpl-check">✓</div>}
-              <div className="tpl-card-top">
-                <span className={`tpl-badge${t.isSystem ? ' tpl-badge-system' : ' tpl-badge-personal'}`}>
-                  {t.isSystem ? '// system' : '// personal'}
-                </span>
-                {!t.isSystem && (
-                  <button
-                    className="tpl-delete-btn"
-                    title="Видалити шаблон"
-                    onClick={(e) => { e.stopPropagation(); onDeleteTemplate(t.id); }}
-                  >×</button>
-                )}
+        <>
+          <div className="template-grid">
+            {paginated.map((t) => (
+              <div key={t.id} className={`template-card${template===t.id?' tpl-selected':''}`} onClick={()=>setTemplate(t.id)}>
+                {template===t.id && <div className="tpl-check">✓</div>}
+                <div className="tpl-card-top">
+                  <span className={`tpl-badge${t.isSystem ? ' tpl-badge-system' : ' tpl-badge-personal'}`}>
+                    {t.isSystem ? '// system' : '// personal'}
+                  </span>
+                  {!t.isSystem && (
+                    <button
+                      className="tpl-delete-btn"
+                      title="Видалити шаблон"
+                      onClick={(e) => { e.stopPropagation(); onDeleteTemplate(t.id); }}
+                    >×</button>
+                  )}
+                </div>
+                <div className="template-name">{t.title}</div>
+                <div className="template-desc">{describeTemplate(t)}</div>
+                <div className="template-count">// {t.items.length} завдань</div>
               </div>
-              <div className="template-name">{t.title}</div>
-              <div className="template-desc">{describeTemplate(t)}</div>
-              <div className="template-count">// {t.items.length} завдань</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+          <Pagination page={page} totalPages={totalPages} onPage={setPage} />
+        </>
       )}
       <div className="action-bar">
         <button className="btn-back" onClick={onBack}>← Назад</button>
@@ -1056,6 +1068,10 @@ function Step2({ method, form, setForm, selectedTemplate, token, onBack, onDone 
 
   async function handleSubmit() {
     if (!form.title.trim()) return;
+    if (saveAsTemplate && !templateTitle.trim()) {
+      setError('// вкажіть назву шаблону');
+      return;
+    }
     setError('');
     setSubmitting(true);
     try {
@@ -1322,19 +1338,26 @@ function Step2({ method, form, setForm, selectedTemplate, token, onBack, onDone 
             <span className="total-score-value">{totalPoints}</span>
           </div>
 
-          <label className="save-template-check">
-            <input type="checkbox" checked={saveAsTemplate} onChange={(e) => setSaveAsTemplate(e.target.checked)} />
-            <span className="save-template-text">Зберегти як шаблон</span>
-            <span className="wiz-comment"> // зберегти структуру як новий шаблон</span>
-          </label>
+          <div className="save-template-row">
+            <label className="save-template-check">
+              <input type="checkbox" checked={saveAsTemplate} onChange={(e) => setSaveAsTemplate(e.target.checked)} />
+              <span className="save-template-text">Зберегти як шаблон</span>
+            </label>
+            <span className="save-template-hint">// зберегти структуру як новий шаблон</span>
+          </div>
           {saveAsTemplate && (
-            <input
-              type="text"
-              className="wiz-input save-template-title-input"
-              placeholder="// назва шаблону"
-              value={templateTitle}
-              onChange={(e) => setTemplateTitle(e.target.value)}
-            />
+            <div className="wiz-field save-template-title-input">
+              <label className="task-sublabel">
+                Назва <span style={{ color: 'var(--red)' }}>*</span>
+              </label>
+              <input
+                type="text"
+                className="wiz-input"
+                placeholder="// назва шаблону"
+                value={templateTitle}
+                onChange={(e) => setTemplateTitle(e.target.value)}
+              />
+            </div>
           )}
         </div>
       )}
@@ -1360,7 +1383,7 @@ function Step2({ method, form, setForm, selectedTemplate, token, onBack, onDone 
         ) : (
           <button
             className={`btn-next${isAI ? ' ai' : ''}`}
-            disabled={!form.title.trim() || submitting || generating}
+            disabled={!form.title.trim() || (saveAsTemplate && !templateTitle.trim()) || submitting || generating}
             onClick={handleSubmit}
           >
             {submitting ? '// збереження...' : '✓ Створити завдання'}

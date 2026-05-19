@@ -1,6 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillCode", "SkillCode\SkillCode.csproj", "{8C991F7A-DA1A-4EE7-9DDF-17D734A80B2A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkillCode.Tests", "SkillCode.Tests\SkillCode.Tests.csproj", "{9F5F1B88-99AB-4BFF-9AB2-90390E0FB54E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +15,9 @@ Global
 		{8C991F7A-DA1A-4EE7-9DDF-17D734A80B2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C991F7A-DA1A-4EE7-9DDF-17D734A80B2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C991F7A-DA1A-4EE7-9DDF-17D734A80B2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F5F1B88-99AB-4BFF-9AB2-90390E0FB54E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F5F1B88-99AB-4BFF-9AB2-90390E0FB54E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F5F1B88-99AB-4BFF-9AB2-90390E0FB54E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F5F1B88-99AB-4BFF-9AB2-90390E0FB54E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

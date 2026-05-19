@@ -64,6 +64,14 @@ export interface UpdateAnswerGradeRequest {
   aiExplanation: string;
 }
 
+export interface ExplainAttemptAnswerRequest {
+  question: string;
+  userAnswer: string | null;
+  correctAnswer: string;
+  language: string | null;
+  options: string | null;
+}
+
 export async function startAttempt(
   token: string,
   req: StartAttemptRequest,
@@ -151,6 +159,21 @@ export async function getAttemptById(
     headers: authHeaders(token),
   });
   if (res.status === 200) return res.json() as Promise<AttemptDetailResponse>;
+  return throwOnError(res);
+}
+
+export async function explainAttemptAnswer(
+  token: string,
+  attemptId: string,
+  answerId: string,
+  req: ExplainAttemptAnswerRequest,
+): Promise<AttemptAnswerResponse> {
+  const res = await fetch(`${BASE_URL}/attempts/${attemptId}/answers/${answerId}/explain`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(req),
+  });
+  if (res.status === 200) return res.json() as Promise<AttemptAnswerResponse>;
   return throwOnError(res);
 }
 

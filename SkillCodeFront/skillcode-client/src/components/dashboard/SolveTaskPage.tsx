@@ -990,6 +990,8 @@ export default function SolveTaskPage({ task, onBack, onViewAttempt, previewMode
         : (serverAnswerMap[q.id]?.userAnswer ?? null),
       isCorrect:    serverAnswerMap[q.id]?.isCorrect    ?? answerResults[q.id]?.isCorrect    ?? null,
       earnedPoints: serverAnswerMap[q.id]?.earnedPoints ?? (q.type === 'Open' ? (openAiGrades[q.id]?.score ?? null) : (answerResults[q.id]?.earnedPoints ?? null)),
+      answerId:     serverAnswerMap[q.id]?.id           ?? '',
+      aiExplanation: serverAnswerMap[q.id]?.aiExplanation ?? null,
     }));
   }
 

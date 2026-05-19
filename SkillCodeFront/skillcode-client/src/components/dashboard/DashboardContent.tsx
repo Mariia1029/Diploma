@@ -30,13 +30,12 @@ const FOLDERS: FolderCardData[] = [
   },
   {
     id: 'shared',
-    icon: '↗',
-    title: '// надіслані',
+    icon: '✉',
+    title: '// повідомлення',
     desc: 'Завдання, якими поділились з вами',
     color: '#e3b341',
     colorDim: '#3a2a1a',
     meta: 'від інших користувачів',
-    badge: '3',
   },
   {
     id: 'groups',
@@ -46,13 +45,13 @@ const FOLDERS: FolderCardData[] = [
     color: '#d2a8ff',
     colorDim: '#2a1a3a',
     meta: 'групові завдання',
-    badge: '1',
   },
 ];
 
 const FOLDER_PAGES: Record<string, string> = {
   mine: 'mine',
   saved: 'saved',
+  shared: 'msgs',
   groups: 'groups',
 };
 

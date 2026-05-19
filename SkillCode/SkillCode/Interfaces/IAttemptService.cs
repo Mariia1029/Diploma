@@ -14,4 +14,5 @@ public interface IAttemptService
     Task<List<AttemptResponse>> GetByTaskAsync(Guid userId, Guid taskId, AttemptType? contextType, Guid? contextId, CancellationToken ct);
     Task ForceFinishExpiredAsync(CancellationToken ct);
     Task DeleteAsync(Guid userId, Guid attemptId, CancellationToken ct);
+    Task<AttemptAnswerResponse> ExplainAnswerAsync(Guid userId, Guid attemptId, Guid answerId, ExplainAnswerRequest request, CancellationToken ct);
 }

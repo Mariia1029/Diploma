@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import CustomSelect from '../common/CustomSelect';
+import Pagination from '../common/Pagination';
 import '../../styles/public-content.css';
 import { useAuth } from '../../context/AuthContext';
 import { getPublicTasks, getSavedTasks, saveTask } from '../../api/tasksApi';
@@ -152,6 +153,8 @@ export default function PublicContentPage() {
   const [search,   setSearch]   = useState('');
   const [saved,    setSaved]    = useState<Set<string>>(new Set());
   const [saveMsgs, setSaveMsgs] = useState<Record<string, string>>({});
+  const [page,     setPage]     = useState(1);
+  const PAGE_SIZE = 9;
 
   useEffect(() => {
     if (!accessToken) return;
@@ -176,6 +179,9 @@ export default function PublicContentPage() {
     else                  list = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return list;
   }, [tasks, filter, lang, search, sort]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   function showSaveMsg(id: string, msg: string) {
     setSaveMsgs(prev => ({ ...prev, [id]: msg }));
@@ -209,7 +215,7 @@ export default function PublicContentPage() {
             <div
               key={f.id}
               className={`pc-filter-tab${filter === f.id ? ' active' : ''}`}
-              onClick={() => setFilter(f.id)}
+              onClick={() => { setFilter(f.id); setPage(1); }}
             >
               {f.label}
             </div>
@@ -229,7 +235,7 @@ export default function PublicContentPage() {
           <span className="pc-select-label">мова:</span>
           <CustomSelect
             value={lang}
-            onChange={setLang}
+            onChange={v => { setLang(v); setPage(1); }}
             options={LANG_OPTIONS}
           />
         </div>
@@ -238,7 +244,7 @@ export default function PublicContentPage() {
           <span className="pc-select-label">сорт:</span>
           <CustomSelect
             value={sort}
-            onChange={v => setSort(v as 'date' | 'title')}
+            onChange={v => { setSort(v as 'date' | 'title'); setPage(1); }}
             options={[
               { value: 'date', label: 'за датою' },
               { value: 'title', label: 'за назвою' },
@@ -251,7 +257,7 @@ export default function PublicContentPage() {
           <input
             placeholder="// пошук..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
       </div>
@@ -281,18 +287,21 @@ export default function PublicContentPage() {
 
       {/* Grid */}
       {!loading && !error && filtered.length > 0 && (
-        <div className="pc-grid">
-          {filtered.map(task => (
-            <PublicCard
-              key={task.id}
-              task={task}
-              saved={saved.has(task.id)}
-              onSave={handleSave}
-              currentUser={user}
-              saveMsg={saveMsgs[task.id]}
-            />
-          ))}
-        </div>
+        <>
+          <div className="pc-grid">
+            {paginated.map(task => (
+              <PublicCard
+                key={task.id}
+                task={task}
+                saved={saved.has(task.id)}
+                onSave={handleSave}
+                currentUser={user}
+                saveMsg={saveMsgs[task.id]}
+              />
+            ))}
+          </div>
+          <Pagination page={page} totalPages={totalPages} onPage={setPage} />
+        </>
       )}
 
     </div>

@@ -210,6 +210,65 @@ public class AiService : IAiService
         return new GradeAnswerResponse(score, feedback);
     }
 
+    public async Task<string> ExplainAnswerAsync(ExplainAnswerRequest request, CancellationToken ct)
+    {
+        var userAnswerText = string.IsNullOrWhiteSpace(request.UserAnswer)
+            ? "не надано"
+            : request.UserAnswer;
+
+        var optionsSection = string.IsNullOrWhiteSpace(request.Options)
+            ? ""
+            : $"\nAnswer options: {request.Options}";
+
+        var languageSection = string.IsNullOrWhiteSpace(request.Language)
+            ? ""
+            : $"\nProgramming language: {request.Language}";
+
+        var openAiRequest = new
+        {
+            model = _model,
+            temperature = 0.3,
+            messages = new[]
+            {
+                new
+                {
+                    role = "system",
+                    content =
+                        "You are a programming tutor. The student has just completed a task and you must explain " +
+                        "in Ukrainian why their answer is different from the correct one. " +
+                        "Be concise (2–3 sentences), constructive, and focus on the key concept they missed. " +
+                        "If the student's answer is correct or nearly correct, briefly confirm what they got right. " +
+                        "Return plain text only — no JSON, no markdown."
+                },
+                new
+                {
+                    role = "user",
+                    content =
+                        $"Question: {request.Question}" +
+                        optionsSection +
+                        languageSection +
+                        $"\nCorrect answer: {request.CorrectAnswer}" +
+                        $"\nStudent's answer: {userAnswerText}"
+                }
+            }
+        };
+
+        HttpResponseMessage httpResponse;
+        try
+        {
+            httpResponse = await _http.PostAsJsonAsync("v1/chat/completions", openAiRequest, ct);
+            httpResponse.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new AiGenerationException($"Помилка зв'язку з OpenAI: {ex.Message}");
+        }
+
+        var completion = JsonNode.Parse(await httpResponse.Content.ReadAsStringAsync(ct));
+        return completion?["choices"]?[0]?["message"]?["content"]?.GetValue<string>()
+            ?? throw new AiGenerationException("Некоректна структура відповіді від OpenAI");
+    }
+
     private static ProgrammingLanguage ParseLanguage(string raw) => raw.ToLowerInvariant() switch
     {
         "python"      => ProgrammingLanguage.Python,

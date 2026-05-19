@@ -55,3 +55,19 @@ public class StartAttemptRequest
 }
 
 public record UpdateAnswerGradeRequest(decimal EarnedPoints, string AiExplanation);
+
+// ── AI Explanation ────────────────────────────────────────────────────────────
+
+public class ExplainAnswerRequest
+{
+    [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Питання є обов'язковим")]
+    public string Question { get; set; } = null!;
+
+    public string? UserAnswer { get; set; }
+
+    [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Правильна відповідь є обов'язковою")]
+    public string CorrectAnswer { get; set; } = null!;
+
+    public string? Language { get; set; }
+    public string? Options { get; set; }
+}

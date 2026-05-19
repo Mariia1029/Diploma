@@ -16,6 +16,7 @@ public class AttemptService : IAttemptService
     private readonly IAttemptAnswerRepository _attemptAnswerRepository;
     private readonly IAnswerCheckerService _checker;
     private readonly ICodeService _codeService;
+    private readonly IAiService _aiService;
     private readonly IMapper _mapper;
     private readonly AppDbContext _db;
 
@@ -24,6 +25,7 @@ public class AttemptService : IAttemptService
         IAttemptAnswerRepository attemptAnswerRepository,
         IAnswerCheckerService checker,
         ICodeService codeService,
+        IAiService aiService,
         IMapper mapper,
         AppDbContext db)
     {
@@ -31,6 +33,7 @@ public class AttemptService : IAttemptService
         _attemptAnswerRepository = attemptAnswerRepository;
         _checker = checker;
         _codeService = codeService;
+        _aiService = aiService;
         _mapper = mapper;
         _db = db;
     }
@@ -242,5 +245,26 @@ public class AttemptService : IAttemptService
 
         _attemptRepository.Remove(attempt);
         await _attemptRepository.SaveChangesAsync(ct);
+    }
+
+    public async Task<AttemptAnswerResponse> ExplainAnswerAsync(
+        Guid userId, Guid attemptId, Guid answerId, ExplainAnswerRequest request, CancellationToken ct)
+    {
+        var attempt = await _attemptRepository.GetByIdAsync(attemptId, ct)
+            ?? throw new AttemptNotFoundException(attemptId);
+
+        if (attempt.UserId != userId)
+            throw new AttemptForbiddenException();
+
+        var answer = await _attemptAnswerRepository.GetByIdAsync(answerId, ct)
+            ?? throw new AttemptAnswerNotFoundException(answerId);
+
+        if (answer.AttemptId != attemptId)
+            throw new AttemptForbiddenException();
+
+        answer.AiExplanation = await _aiService.ExplainAnswerAsync(request, ct);
+
+        await _attemptAnswerRepository.SaveChangesAsync(ct);
+        return _mapper.Map<AttemptAnswerResponse>(answer);
     }
 }

@@ -24,6 +24,7 @@
   flex-direction: column;
   overflow: hidden;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+  min-height: 300px;
   max-height: calc(100vh - 48px);
 }
 
@@ -101,6 +102,8 @@
   flex-direction: column;
   gap: 10px;
   overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .share-section-label {

@@ -1,3 +1,9 @@
 {
-  "outputStyle": "default"
+  "outputStyle": "default",
+  "permissions": {
+    "allow": [
+      "Read(//c/Program Files/dotnet/sdk/**)",
+      "Bash(dir \"C:\\\\Program Files\\\\dotnet\\\\sdk\")"
+    ]
+  }
 }
