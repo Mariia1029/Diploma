@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/admin.css';
 import type { AdminUserResponse } from '../api/adminApi';
@@ -112,17 +113,33 @@ function PersonIco() {
 // ─── SIDEBAR ─────────────────────────────────────────────────────
 type TabId = 'overview' | 'templates' | 'admins' | 'blocked' | 'profile';
 
+const TAB_PATHS: Record<TabId, string> = {
+  overview:  '/admin',
+  templates: '/admin/templates',
+  admins:    '/admin/admins',
+  blocked:   '/admin/blocked',
+  profile:   '/admin/profile',
+};
+
+function pathToTab(pathname: string): TabId {
+  if (pathname.startsWith('/admin/templates')) return 'templates';
+  if (pathname.startsWith('/admin/admins'))    return 'admins';
+  if (pathname.startsWith('/admin/blocked'))   return 'blocked';
+  if (pathname.startsWith('/admin/profile'))   return 'profile';
+  return 'overview';
+}
+
 interface AdminSidebarProps {
-  active: TabId;
-  setActive: (id: TabId) => void;
   userName: string;
   userInitials: string;
   onLogout: () => void;
 }
 
-function AdminSidebar({
-  active, setActive, userName, userInitials, onLogout,
-}: AdminSidebarProps) {
+function AdminSidebar({ userName, userInitials, onLogout }: AdminSidebarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const active   = pathToTab(location.pathname);
+
   const navItems: { id: TabId; icon: React.ReactElement; label: string }[] = [
     { id: 'overview',  icon: <ShieldIco />, label: '// огляд'       },
     { id: 'templates', icon: <TplIco />,    label: '// шаблони'     },
@@ -148,7 +165,7 @@ function AdminSidebar({
           <div
             key={item.id}
             className={`adm-nav-item${active === item.id ? ' active' : ''}`}
-            onClick={() => setActive(item.id)}
+            onClick={() => navigate(TAB_PATHS[item.id])}
           >
             <span className="adm-nav-icon">{item.icon}</span>
             <span>{item.label}</span>
@@ -160,7 +177,7 @@ function AdminSidebar({
         <div
           className={`adm-profile-btn${active === 'profile' ? ' active' : ''}`}
           style={{ cursor: 'pointer' }}
-          onClick={() => setActive('profile')}
+          onClick={() => navigate(TAB_PATHS.profile)}
         >
           <div className="adm-avatar">{userInitials}</div>
           <div className="adm-profile-info">
@@ -719,8 +736,9 @@ function OverviewTab({ blockedCount, adminCount, templateCount, totalUsers }: Ov
 // ─── MAIN PAGE ───────────────────────────────────────────────────
 export default function AdminPage() {
   const { user, accessToken, logout } = useAuth();
+  const location = useLocation();
 
-  const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const activeTab = useMemo(() => pathToTab(location.pathname), [location.pathname]);
   const [blockedUsers, setBlockedUsers] = useState<AdminUserResponse[]>([]);
   const [adminUsers,   setAdminUsers]   = useState<AdminUserResponse[]>([]);
   const [templates,    setTemplates]    = useState<TemplateDetailResponse[]>([]);
@@ -836,8 +854,6 @@ export default function AdminPage() {
   return (
     <div className="adm-layout">
       <AdminSidebar
-        active={activeTab}
-        setActive={setActiveTab}
         userName={userName}
         userInitials={userInitials}
         onLogout={logout}

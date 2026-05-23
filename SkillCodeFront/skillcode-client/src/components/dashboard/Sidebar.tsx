@@ -1,5 +1,8 @@
+import { useNavigate, useLocation } from 'react-router-dom';
+
 interface NavItemData {
   id: string;
+  path: string;
   icon: string;
   label: string;
   section: 'main' | 'social';
@@ -7,13 +10,13 @@ interface NavItemData {
 }
 
 const NAV_ITEMS: NavItemData[] = [
-  { id: 'home',   icon: '⌂', label: '// головна',         section: 'main' },
-  { id: 'create', icon: '+', label: '// створити контент', section: 'main' },
-  { id: 'mine',   icon: '◈', label: '// мій контент',      section: 'main' },
-  { id: 'groups', icon: '⬡', label: '// групи',            section: 'social' },
-  { id: 'msgs',   icon: '✉', label: '// повідомлення',     section: 'social' },
-  { id: 'saved',  icon: '◇', label: '// збережене',        section: 'social' },
-  { id: 'public', icon: '◉', label: '// публічне',          section: 'social' },
+  { id: 'home',   path: '/dashboard',          icon: '⌂', label: '// головна',         section: 'main' },
+  { id: 'create', path: '/dashboard/create',   icon: '+', label: '// створити контент', section: 'main' },
+  { id: 'mine',   path: '/dashboard/mine',     icon: '◈', label: '// мій контент',      section: 'main' },
+  { id: 'groups', path: '/dashboard/groups',   icon: '⬡', label: '// групи',            section: 'social' },
+  { id: 'msgs',   path: '/dashboard/messages', icon: '✉', label: '// повідомлення',     section: 'social' },
+  { id: 'saved',  path: '/dashboard/saved',    icon: '◇', label: '// збережене',        section: 'social' },
+  { id: 'public', path: '/dashboard/public',   icon: '◉', label: '// публічне',          section: 'social' },
 ];
 
 const SECTION_LABELS: Record<string, string> = {
@@ -22,15 +25,21 @@ const SECTION_LABELS: Record<string, string> = {
 };
 
 interface SidebarProps {
-  activePage: string;
-  onNavigate: (id: string) => void;
   userName: string;
   userInitials: string;
   onProfile: () => void;
   onLogout: () => void;
 }
 
-export default function Sidebar({ activePage, onNavigate, userName, userInitials, onProfile, onLogout }: SidebarProps) {
+function isNavItemActive(item: NavItemData, pathname: string): boolean {
+  if (item.id === 'home') return pathname === '/dashboard' || pathname === '/dashboard/';
+  return pathname.startsWith(item.path);
+}
+
+export default function Sidebar({ userName, userInitials, onProfile, onLogout }: SidebarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
@@ -46,8 +55,8 @@ export default function Sidebar({ activePage, onNavigate, userName, userInitials
             {NAV_ITEMS.filter((item) => item.section === section).map((item) => (
               <div
                 key={item.id}
-                className={`nav-item${activePage === item.id ? ' active' : ''}`}
-                onClick={() => onNavigate(item.id)}
+                className={`nav-item${isNavItemActive(item, location.pathname) ? ' active' : ''}`}
+                onClick={() => navigate(item.path)}
               >
                 <span className="nav-icon">{item.icon}</span>
                 <span>{item.label}</span>

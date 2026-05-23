@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Npgsql.NameTranslation;
@@ -10,6 +11,7 @@ using SkillCode.Data;
 using SkillCode.Enums;
 using SkillCode.Interfaces;
 using SkillCode.Middleware;
+using SkillCode.Options;
 using SkillCode.Repositories;
 using SkillCode.Services;
 using SkillCode.Services.AnswerStrategies;
@@ -90,12 +92,14 @@ builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddSingleton<IPasswordResetStore, PasswordResetStore>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-builder.Services.AddHttpClient("openai", client =>
+builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection("OpenAI"));
+
+builder.Services.AddHttpClient("openai", (sp, client) =>
 {
+    var options = sp.GetRequiredService<IOptions<OpenAiOptions>>().Value;
     client.BaseAddress = new Uri("https://api.openai.com/");
     client.DefaultRequestHeaders.Authorization =
-        new System.Net.Http.Headers.AuthenticationHeaderValue(
-            "Bearer", builder.Configuration["OpenAI:ApiKey"]);
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.ApiKey);
 });
 builder.Services.AddScoped<IAiService, AiService>();
 

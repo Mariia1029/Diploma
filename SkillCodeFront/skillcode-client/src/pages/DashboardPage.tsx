@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/dashboard.css';
 import Sidebar from '../components/dashboard/Sidebar';
 import Topbar from '../components/dashboard/Topbar';
@@ -18,15 +19,52 @@ import type { TaskDetailResponse } from '../types/task';
 import { getTaskById } from '../api/tasksApi';
 
 const PAGE_TITLES: Record<string, string> = {
-  home:    'Головна',
-  create:  'Створити контент',
-  mine:    'Мій контент',
-  groups:  'Групи',
-  msgs:    'Повідомлення',
-  saved:   'Збережене',
-  public:  'Публічне',
-  profile: 'Мій профіль',
+  home:         'Головна',
+  create:       'Створити контент',
+  mine:         'Мій контент',
+  groups:       'Групи',
+  msgs:         'Повідомлення',
+  saved:        'Збережене',
+  public:       'Публічне',
+  profile:      'Мій профіль',
+  solve:        '',
+  'view-attempt': '',
+  'msg-solve':  '',
 };
+
+const PATH_TO_PAGE: [string, string][] = [
+  ['/dashboard/messages/solve', 'msg-solve'],
+  ['/dashboard/create',         'create'],
+  ['/dashboard/mine',           'mine'],
+  ['/dashboard/groups',         'groups'],
+  ['/dashboard/messages',       'msgs'],
+  ['/dashboard/saved',          'saved'],
+  ['/dashboard/public',         'public'],
+  ['/dashboard/profile',        'profile'],
+  ['/dashboard/solve',          'solve'],
+  ['/dashboard/attempt',        'view-attempt'],
+];
+
+const PAGE_TO_PATH: Record<string, string> = {
+  home:           '/dashboard',
+  create:         '/dashboard/create',
+  mine:           '/dashboard/mine',
+  groups:         '/dashboard/groups',
+  msgs:           '/dashboard/messages',
+  saved:          '/dashboard/saved',
+  public:         '/dashboard/public',
+  profile:        '/dashboard/profile',
+  solve:          '/dashboard/solve',
+  'view-attempt': '/dashboard/attempt',
+  'msg-solve':    '/dashboard/messages/solve',
+};
+
+function pathToPage(pathname: string): string {
+  for (const [prefix, page] of PATH_TO_PAGE) {
+    if (pathname.startsWith(prefix)) return page;
+  }
+  return 'home';
+}
 
 function initials(firstName: string, lastName: string) {
   return `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase();
@@ -34,24 +72,29 @@ function initials(firstName: string, lastName: string) {
 
 export default function DashboardPage() {
   const { user, logout, accessToken } = useAuth();
-  const [activePage,      setActivePage]      = useState('home');
+  const navigate  = useNavigate();
+  const location  = useLocation();
+
+  const activePage = useMemo(() => pathToPage(location.pathname), [location.pathname]);
+
+  function goTo(page: string) {
+    navigate(PAGE_TO_PATH[page] ?? '/dashboard');
+  }
+
   const [solveTask,        setSolveTask]        = useState<TaskDetailResponse | null>(null);
   const [resumeAttemptId,  setResumeAttemptId]  = useState<string | null>(null);
   const [solveContextType, setSolveContextType] = useState<string>('Personal');
   const [solveContextId,   setSolveContextId]   = useState<string | null>(null);
-  const [solveReturnPage,  setSolveReturnPage]  = useState<string>('mine');
-  const [viewData,        setViewData]        = useState<ViewAttemptInput | null>(null);
-  const [viewReturnPage,  setViewReturnPage]  = useState<string>('mine');
-  const [msgSolveTask,    setMsgSolveTask]    = useState<TaskDetailResponse | null>(null);
-  const [msgShareId,      setMsgShareId]      = useState<string | null>(null);
+  const [viewData,         setViewData]         = useState<ViewAttemptInput | null>(null);
+  const [msgSolveTask,     setMsgSolveTask]     = useState<TaskDetailResponse | null>(null);
+  const [msgShareId,       setMsgShareId]       = useState<string | null>(null);
 
   function handleTakeTestFromMine(task: TaskDetailResponse) {
     setResumeAttemptId(null);
     setSolveTask(task);
     setSolveContextType('Personal');
     setSolveContextId(null);
-    setSolveReturnPage('mine');
-    setActivePage('solve');
+    goTo('solve');
   }
 
   function handleTakeTestFromSaved(task: TaskDetailResponse) {
@@ -59,8 +102,7 @@ export default function DashboardPage() {
     setSolveTask(task);
     setSolveContextType('Saved');
     setSolveContextId(null);
-    setSolveReturnPage('saved');
-    setActivePage('solve');
+    goTo('solve');
   }
 
   async function handleTakeTestFromGroup(taskId: string, groupId: string) {
@@ -71,8 +113,7 @@ export default function DashboardPage() {
       setSolveTask(task);
       setSolveContextType('Group');
       setSolveContextId(groupId);
-      setSolveReturnPage('groups');
-      setActivePage('solve');
+      goTo('solve');
     } catch (e) {
       console.error('Failed to load task for group:', e);
     }
@@ -83,14 +124,13 @@ export default function DashboardPage() {
     setSolveTask(task);
     setSolveContextType('Personal');
     setSolveContextId(null);
-    setSolveReturnPage('mine');
-    setActivePage('solve');
+    goTo('solve');
   }
 
   function handleBackFromSolve() {
     setSolveTask(null);
     setResumeAttemptId(null);
-    setActivePage(solveReturnPage);
+    navigate(-1);
   }
 
   async function handleTakeTestFromMessage(taskId: string, shareId: string) {
@@ -99,7 +139,7 @@ export default function DashboardPage() {
       const task = await getTaskById(accessToken, taskId);
       setMsgSolveTask(task);
       setMsgShareId(shareId);
-      setActivePage('msg-solve');
+      goTo('msg-solve');
     } catch (e) {
       console.error('Failed to load task for message preview:', e);
     }
@@ -108,31 +148,27 @@ export default function DashboardPage() {
   function handleBackFromMsgSolve() {
     setMsgSolveTask(null);
     setMsgShareId(null);
-    setActivePage('msgs');
+    navigate(-1);
   }
 
   function handleViewAttempt(input: ViewAttemptInput) {
     setViewData(input);
-    setViewReturnPage(solveReturnPage);
-    setActivePage('view-attempt');
+    goTo('view-attempt');
   }
 
   function handleViewAttemptFromMine(input: ViewAttemptInput) {
     setViewData(input);
-    setViewReturnPage('mine');
-    setActivePage('view-attempt');
+    goTo('view-attempt');
   }
 
   function handleViewAttemptFromGroups(input: ViewAttemptInput) {
     setViewData(input);
-    setViewReturnPage('groups');
-    setActivePage('view-attempt');
+    goTo('view-attempt');
   }
 
   function handleBackFromView() {
     setViewData(null);
-    setSolveTask(null);
-    setActivePage(viewReturnPage);
+    navigate(-1);
   }
 
   const fullName     = user ? `${user.firstName} ${user.lastName}` : '';
@@ -144,11 +180,9 @@ export default function DashboardPage() {
   return (
     <div className="layout">
       <Sidebar
-        activePage={activePage}
-        onNavigate={setActivePage}
         userName={fullName}
         userInitials={userInitials}
-        onProfile={() => setActivePage('profile')}
+        onProfile={() => goTo('profile')}
         onLogout={logout}
       />
       <div className="main">
@@ -203,7 +237,7 @@ export default function DashboardPage() {
                           onBack={handleBackFromView}
                         />
                       )
-                      : <DashboardContent userName={vocative} onNavigate={setActivePage} />
+                      : <DashboardContent userName={vocative} onNavigate={goTo} />
         }
       </div>
     </div>

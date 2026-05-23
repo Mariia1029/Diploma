@@ -1,10 +1,12 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Microsoft.Extensions.Options;
 using SkillCode.DTOs;
 using SkillCode.Enums;
 using SkillCode.Exceptions;
 using SkillCode.Interfaces;
+using SkillCode.Options;
 
 namespace SkillCode.Services;
 
@@ -13,10 +15,10 @@ public class AiService : IAiService
     private readonly HttpClient _http;
     private readonly string _model;
 
-    public AiService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+    public AiService(IHttpClientFactory httpClientFactory, IOptions<OpenAiOptions> options)
     {
-        _http = httpClientFactory.CreateClient("openai");
-        _model = configuration["OpenAI:Model"] ?? "gpt-4o";
+        _http  = httpClientFactory.CreateClient("openai");
+        _model = options.Value.Model;
     }
 
     public async Task<GenerateTaskResponse> GenerateTaskAsync(GenerateTaskRequest request, CancellationToken ct)

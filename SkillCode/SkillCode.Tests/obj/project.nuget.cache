@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "B6NtJ/VKZHA=",
+  "dgSpecHash": "/s9+Yh6EbsY=",
   "success": true,
   "projectFilePath": "D:\\Diploma\\Project\\SkillCode\\SkillCode.Tests\\SkillCode.Tests.csproj",
   "expectedPackageFiles": [
@@ -55,7 +55,8 @@
     "C:\\Users\\Марія Гордійчук\\.nuget\\packages\\xunit.core\\2.9.3\\xunit.core.2.9.3.nupkg.sha512",
     "C:\\Users\\Марія Гордійчук\\.nuget\\packages\\xunit.extensibility.core\\2.9.3\\xunit.extensibility.core.2.9.3.nupkg.sha512",
     "C:\\Users\\Марія Гордійчук\\.nuget\\packages\\xunit.extensibility.execution\\2.9.3\\xunit.extensibility.execution.2.9.3.nupkg.sha512",
-    "C:\\Users\\Марія Гордійчук\\.nuget\\packages\\xunit.runner.visualstudio\\2.8.2\\xunit.runner.visualstudio.2.8.2.nupkg.sha512"
+    "C:\\Users\\Марія Гордійчук\\.nuget\\packages\\xunit.runner.visualstudio\\2.8.2\\xunit.runner.visualstudio.2.8.2.nupkg.sha512",
+    "C:\\Users\\Марія Гордійчук\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.16\\microsoft.netcore.app.ref.9.0.16.nupkg.sha512"
   ],
   "logs": [
     {

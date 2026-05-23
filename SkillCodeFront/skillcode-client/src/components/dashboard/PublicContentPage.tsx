@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import CustomSelect from '../common/CustomSelect';
 import Pagination from '../common/Pagination';
+import ShareModal from './ShareModal';
 import '../../styles/public-content.css';
 import { useAuth } from '../../context/AuthContext';
-import { getPublicTasks, getSavedTasks, saveTask } from '../../api/tasksApi';
+import { getPublicTasks, getSavedTasks, saveTask, unsaveTask } from '../../api/tasksApi';
 import { ApiError } from '../../api/usersApi';
 import type { PublicTaskResponse, TaskItemResponse } from '../../types/task';
 import type { TaskType } from '../../types/template';
@@ -64,17 +65,17 @@ interface PublicCardProps {
   task: PublicTaskResponse;
   saved: boolean;
   onSave: (id: string) => void;
-  currentUser: { firstName: string; lastName: string; id: string } | null;
+  onShare: (taskId: string, taskTitle: string) => void;
   saveMsg?: string;
 }
 
-function PublicCard({ task, saved, onSave, currentUser, saveMsg }: PublicCardProps) {
+function PublicCard({ task, saved, onSave, onShare, saveMsg }: PublicCardProps) {
   const langDisplay = LANG_DISPLAY[task.language] ?? task.language;
   const langClass   = LANG_TAG_CLASS[task.language] ?? 'tag-dim';
   const typeLabels  = uniqueTypeLabels(task.taskItems);
 
-  const firstName = task.ownerFirstName || (task.ownerId === currentUser?.id ? currentUser?.firstName : '') || '';
-  const lastName  = task.ownerLastName  || (task.ownerId === currentUser?.id ? currentUser?.lastName  : '') || '';
+  const firstName = task.owner?.firstName ?? '';
+  const lastName  = task.owner?.lastName  ?? '';
 
   return (
     <div className="pc-card">
@@ -101,13 +102,25 @@ function PublicCard({ task, saved, onSave, currentUser, saveMsg }: PublicCardPro
             {task.taskItems.length} питань · {formatDate(task.createdAt)}
           </span>
           <div className="pc-card-actions">
-            <button className="pc-icon-btn" title="Поділитись">↗</button>
+            <button
+              className="pc-icon-btn"
+              title="Поділитись"
+              onClick={e => { e.stopPropagation(); onShare(task.id, task.title); }}
+            >
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 2v8" />
+                <path d="M5 5l3-3 3 3" />
+                <path d="M4 9v4h8V9" />
+              </svg>
+            </button>
             <button
               className={`pc-icon-btn${saved ? ' pc-saved' : ''}`}
               title={saved ? 'Збережено' : 'Зберегти'}
               onClick={e => { e.stopPropagation(); onSave(task.id); }}
             >
-              {saved ? '◆' : '◇'}
+              <svg viewBox="0 0 16 16" fill={saved ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round">
+                <path d="M3.5 2.5h9v12L8 11l-4.5 3.5z" />
+              </svg>
             </button>
           </div>
         </div>
@@ -141,19 +154,20 @@ const LANG_OPTIONS = [
 ];
 
 export default function PublicContentPage() {
-  const { accessToken, user } = useAuth();
+  const { accessToken } = useAuth();
   const token = accessToken ?? '';
 
-  const [tasks,    setTasks]    = useState<PublicTaskResponse[]>([]);
-  const [loading,  setLoading]  = useState(true);
-  const [error,    setError]    = useState<string | null>(null);
-  const [filter,   setFilter]   = useState<Category>('all');
-  const [lang,     setLang]     = useState('all');
-  const [sort,     setSort]     = useState<'date' | 'title'>('date');
-  const [search,   setSearch]   = useState('');
-  const [saved,    setSaved]    = useState<Set<string>>(new Set());
-  const [saveMsgs, setSaveMsgs] = useState<Record<string, string>>({});
-  const [page,     setPage]     = useState(1);
+  const [tasks,       setTasks]       = useState<PublicTaskResponse[]>([]);
+  const [loading,     setLoading]     = useState(true);
+  const [error,       setError]       = useState<string | null>(null);
+  const [filter,      setFilter]      = useState<Category>('all');
+  const [lang,        setLang]        = useState('all');
+  const [sort,        setSort]        = useState<'date' | 'title'>('date');
+  const [search,      setSearch]      = useState('');
+  const [saved,       setSaved]       = useState<Set<string>>(new Set());
+  const [saveMsgs,    setSaveMsgs]    = useState<Record<string, string>>({});
+  const [shareTarget, setShareTarget] = useState<{ taskId: string; taskTitle: string } | null>(null);
+  const [page,        setPage]        = useState(1);
   const PAGE_SIZE = 9;
 
   useEffect(() => {
@@ -189,24 +203,40 @@ export default function PublicContentPage() {
   }
 
   async function handleSave(id: string) {
-    if (saved.has(id)) return;
+    const isSaved = saved.has(id);
+    setSaved(prev => {
+      const next = new Set(prev);
+      if (isSaved) next.delete(id); else next.add(id);
+      return next;
+    });
     try {
-      await saveTask(token, id);
-      setSaved(prev => new Set(prev).add(id));
+      if (isSaved) {
+        await unsaveTask(token, id);
+      } else {
+        await saveTask(token, id);
+      }
     } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.status === 409) {
-          setSaved(prev => new Set(prev).add(id));
-          showSaveMsg(id, 'Це завдання вже у збережених');
-        } else if (err.status === 403) {
-          showSaveMsg(id, 'Неможливо зберегти власне завдання');
-        }
+      setSaved(prev => {
+        const next = new Set(prev);
+        if (isSaved) next.add(id); else next.delete(id);
+        return next;
+      });
+      if (err instanceof ApiError && err.status === 403) {
+        showSaveMsg(id, 'Неможливо зберегти власне завдання');
       }
     }
   }
 
   return (
     <div className="content">
+
+      {shareTarget && (
+        <ShareModal
+          taskId={shareTarget.taskId}
+          taskTitle={shareTarget.taskTitle}
+          onClose={() => setShareTarget(null)}
+        />
+      )}
 
       {/* Toolbar */}
       <div className="pc-toolbar">
@@ -295,7 +325,7 @@ export default function PublicContentPage() {
                 task={task}
                 saved={saved.has(task.id)}
                 onSave={handleSave}
-                currentUser={user}
+                onShare={(taskId, taskTitle) => setShareTarget({ taskId, taskTitle })}
                 saveMsg={saveMsgs[task.id]}
               />
             ))}

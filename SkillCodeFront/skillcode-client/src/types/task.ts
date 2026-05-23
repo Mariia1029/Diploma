@@ -72,9 +72,15 @@ export interface AiGeneratedTaskResponse {
   taskItems: AiGeneratedTaskItemResponse[];
 }
 
+export interface TaskOwner {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 export interface PublicTaskResponse extends TaskDetailResponse {
-  ownerFirstName: string;
-  ownerLastName: string;
+  owner: TaskOwner;
 }
 
 export interface GenerateTaskRequest {
