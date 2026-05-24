@@ -16,6 +16,7 @@ import {
 import { searchUsers } from '../api/sharesApi';
 import type { UserSearchResult } from '../api/sharesApi';
 import type { TemplateDetailResponse, CreateTemplateRequest } from '../types/template';
+import { deleteTemplate } from '../api/templatesApi';
 import type { UserRole } from '../types/user';
 import TemplateCreateModal from '../components/dashboard/TemplateCreateModal';
 import ProfilePage from '../components/dashboard/ProfilePage';
@@ -331,6 +332,54 @@ function DemoteModal({ user, onClose, onConfirm }: DemoteModalProps) {
           <button className="adm-btn adm-btn-danger" onClick={onConfirm}>
             <DemoteIco />
             зняти роль
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── DELETE TEMPLATE MODAL ───────────────────────────────────────
+interface DeleteTemplateModalProps {
+  tpl: TemplateDetailResponse;
+  loading: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}
+
+function DeleteTemplateModal({ tpl, loading, onClose, onConfirm }: DeleteTemplateModalProps) {
+  return (
+    <div className="adm-modal-overlay" onClick={onClose}>
+      <div className="adm-modal" onClick={e => e.stopPropagation()}>
+        <div className="adm-modal-head">
+          <div className="adm-modal-icon danger">
+            <TrashIco />
+          </div>
+          <div>
+            <div className="adm-modal-title">Видалити шаблон</div>
+            <div className="adm-modal-sub">// цю дію неможливо скасувати</div>
+          </div>
+        </div>
+
+        <div className="adm-modal-body">
+          <div className="adm-modal-target">
+            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>
+              <span style={{ color: 'var(--accent)' }}>//</span> {tpl.title}
+            </div>
+          </div>
+          <div className="adm-confirm-strip danger">
+            <span className="adm-warn-icon" style={{ color: 'var(--admin-accent)' }}>⚠</span>
+            <div className="adm-strip-text">
+              Шаблон буде <strong style={{ color: 'var(--admin-accent)' }}>видалено назавжди</strong>. Контент, створений на його основі, залишиться без змін.
+            </div>
+          </div>
+        </div>
+
+        <div className="adm-modal-foot">
+          <button className="adm-btn adm-btn-ghost" onClick={onClose} disabled={loading}>скасувати</button>
+          <button className="adm-btn adm-btn-danger" onClick={onConfirm} disabled={loading}>
+            <TrashIco />
+            {loading ? 'видалення...' : 'видалити'}
           </button>
         </div>
       </div>
@@ -669,9 +718,10 @@ function UserResultCard({ user, currentUserId, onBlock, onUnblock, onPromote, on
 // ─── TEMPLATE CARD ───────────────────────────────────────────────
 interface TemplateCardProps {
   tpl: TemplateDetailResponse;
+  onDelete: (tpl: TemplateDetailResponse) => void;
 }
 
-function TemplateCard({ tpl }: TemplateCardProps) {
+function TemplateCard({ tpl, onDelete }: TemplateCardProps) {
   return (
     <div className="adm-tpl-card">
       <div className="adm-tpl-head">
@@ -684,8 +734,24 @@ function TemplateCard({ tpl }: TemplateCardProps) {
       </div>
       <div className="adm-tpl-foot">
         <span className="adm-tpl-date">{formatDate(tpl.createdAt)}</span>
+        <div className="adm-tpl-actions">
+          <button className="adm-icon-btn danger" title="Видалити шаблон" onClick={() => onDelete(tpl)}>
+            <TrashIco />
+          </button>
+        </div>
       </div>
     </div>
+  );
+}
+
+function TrashIco() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
   );
 }
 
@@ -751,6 +817,8 @@ export default function AdminPage() {
   const [tplModalOpen,     setTplModalOpen]      = useState(false);
   const [addAdminOpen,     setAddAdminOpen]      = useState(false);
   const [pickUserForBlock, setPickUserForBlock]  = useState(false);
+  const [deleteTarget,     setDeleteTarget]      = useState<TemplateDetailResponse | null>(null);
+  const [deleteLoading,    setDeleteLoading]     = useState(false);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -793,6 +861,20 @@ export default function AdminPage() {
       console.error('Unblock user error:', err);
     }
     setUnblockTarget(null);
+  }
+
+  async function handleDeleteTemplate() {
+    if (!deleteTarget || !accessToken) return;
+    setDeleteLoading(true);
+    try {
+      await deleteTemplate(accessToken, deleteTarget.id);
+      setTemplates(ts => ts.filter(t => t.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      console.error('Delete template error:', err);
+    } finally {
+      setDeleteLoading(false);
+    }
   }
 
   async function handlePromote(u: AdminUserResponse) {
@@ -921,7 +1003,7 @@ export default function AdminPage() {
                 ) : (
                   <div className="adm-templates-grid">
                     {templates.map(t => (
-                      <TemplateCard key={t.id} tpl={t} />
+                      <TemplateCard key={t.id} tpl={t} onDelete={setDeleteTarget} />
                     ))}
                     <div className="adm-tpl-create" onClick={() => setTplModalOpen(true)}>
                       <div className="adm-plus-circle">+</div>
@@ -1035,6 +1117,14 @@ export default function AdminPage() {
           onClose={() => setTplModalOpen(false)}
           onCreated={handleTplCreated}
           createFn={systemCreateFn}
+        />
+      )}
+      {deleteTarget && (
+        <DeleteTemplateModal
+          tpl={deleteTarget}
+          loading={deleteLoading}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={handleDeleteTemplate}
         />
       )}
       {addAdminOpen && accessToken && (
