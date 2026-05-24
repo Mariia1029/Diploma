@@ -198,6 +198,13 @@
   font-weight: 700;
 }
 .template-name { font-size: 11px; font-weight: 600; color: var(--text-primary); margin-bottom: 5px; }
+.template-system-desc {
+  font-size: 10px;
+  color: #63b3ed;
+  line-height: 1.4;
+  margin-bottom: 5px;
+  opacity: 0.85;
+}
 .template-desc { font-size: 10px; color: var(--text-muted); line-height: 1.5; }
 .template-count { font-size: 9px; color: var(--text-faint); margin-top: 6px; }
 
@@ -221,9 +228,9 @@
   border: 1px solid rgba(99,179,237,0.25);
 }
 .tpl-badge-personal {
-  background: rgba(160,174,192,0.1);
-  color: var(--text-faint);
-  border: 1px solid var(--border);
+  background: rgba(74,222,128,0.1);
+  color: var(--accent);
+  border: 1px solid rgba(74,222,128,0.25);
 }
 .tpl-delete-btn {
   background: transparent;

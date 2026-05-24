@@ -172,29 +172,30 @@ export async function searchUsers(
   return throwOnError(res);
 }
 
-// 10. GET /api/groups/mine?q=...
+// 10. GET /api/groups?query=...
 export async function searchMyGroups(
   token: string,
   query: string,
 ): Promise<GroupSearchResult[]> {
   const q = encodeURIComponent(query);
-  const res = await fetch(`${BASE_URL}/groups/mine?q=${q}`, {
+  const res = await fetch(`${BASE_URL}/groups?query=${q}`, {
     headers: authHeaders(token),
   });
   if (res.status === 200) return res.json() as Promise<GroupSearchResult[]>;
   return throwOnError(res);
 }
 
-// 11. POST /api/tasks/{taskId}/share-group
+// 11. POST /api/groups/{groupId}/tasks
 export async function shareTaskToGroup(
   token: string,
   taskId: string,
   groupId: string,
+  collectResults: boolean = false,
 ): Promise<void> {
-  const res = await fetch(`${BASE_URL}/tasks/${taskId}/share-group`, {
+  const res = await fetch(`${BASE_URL}/groups/${groupId}/tasks`, {
     method: 'POST',
     headers: authHeaders(token),
-    body: JSON.stringify({ groupId }),
+    body: JSON.stringify({ taskId, collectResults }),
   });
   if (res.status === 200 || res.status === 201) return;
   return throwOnError(res);

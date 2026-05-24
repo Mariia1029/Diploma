@@ -47,7 +47,6 @@ const TASK_TYPE_LABELS: Record<TaskType, string> = {
 
 interface FormState {
   title: string;
-  desc: string;
   lang: string;
   topic: string;
   count: string;
@@ -457,6 +456,9 @@ function Step1({ method, template, setTemplate, templates, loadingTemplates, onN
                   )}
                 </div>
                 <div className="template-name">{t.title}</div>
+                {t.isSystem && t.description && (
+                  <div className="template-system-desc">{t.description}</div>
+                )}
                 <div className="template-desc">{describeTemplate(t)}</div>
                 <div className="template-count">// {t.items.length} завдань</div>
               </div>
@@ -893,7 +895,7 @@ function TaskBody({ draft, onUpdate }: { draft: TaskDraft; onUpdate: (d: TaskDra
     <div className="task-body-inner">
       <div className="wiz-field">
         <label className="task-sublabel">
-          {isFlash ? 'Лицьова сторона картки' : 'Питання'} <span style={{ color: 'var(--red)' }}>*</span>
+          {isFlash ? 'Лицева сторона картки' : 'Питання'} <span style={{ color: 'var(--red)' }}>*</span>
         </label>
         <textarea
           className="wiz-textarea"
@@ -1177,17 +1179,6 @@ function Step2({ method, form, setForm, selectedTemplate, token, onBack, onDone 
           />
         </div>
 
-        <div className="wiz-field full">
-          <label className="wiz-label">Опис</label>
-          <textarea
-            className="wiz-textarea"
-            placeholder="// короткий опис змісту завдань..."
-            value={form.desc}
-            onChange={(e) => update('desc', e.target.value)}
-            disabled={generating}
-          />
-        </div>
-
         <div className="wiz-field">
           <label className="wiz-label">Мова програмування</label>
           <CustomSelect
@@ -1402,7 +1393,7 @@ export default function CreateContentPage() {
   const [step, setStep]       = useState(0);
   const [method, setMethod]   = useState<Method>(null);
   const [template, setTemplate] = useState<string | null>(null);
-  const [form, setForm]       = useState<FormState>({ title: '', desc: '', lang: 'Python', topic: '', count: '5', time: '' });
+  const [form, setForm]       = useState<FormState>({ title: '', lang: 'Python', topic: '', count: '5', time: '' });
 
   const [templates, setTemplates]           = useState<TemplateDetailResponse[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(false);
@@ -1497,7 +1488,7 @@ export default function CreateContentPage() {
               setStep(0);
               setMethod(null);
               setTemplate(null);
-              setForm({ title: '', desc: '', lang: 'Python', topic: '', count: '5', time: '' });
+              setForm({ title: '', lang: 'Python', topic: '', count: '5', time: '' });
             }}
           />
         )}

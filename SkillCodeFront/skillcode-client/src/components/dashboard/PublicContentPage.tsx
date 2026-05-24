@@ -20,16 +20,10 @@ const LANG_TAG_CLASS: Record<string, string> = {
   Go: 'tag-go', Rust: 'tag-rs',
 };
 
-const TYPE_LABEL: Partial<Record<TaskType, string>> = {
-  SingleChoice: 'Тест',
-  MultiChoice:  'Тест',
-  TrueFalse:    'Тест',
-  FlashCards:   'Флеш-картки',
-  Coding:       'Кодування',
-  Open:         'Відкрита відп.',
-  Matching:     'Відповідність',
-  Ordering:     'Порядок',
-  FillBlank:    'Заповнення',
+const CATEGORY_LABEL: Record<'test' | 'flashcards' | 'coding', string> = {
+  test:       'Тестування',
+  flashcards: 'Флеш-картки',
+  coding:     'Кодування',
 };
 
 function formatDate(iso: string) {
@@ -50,16 +44,6 @@ function taskCategory(items: TaskItemResponse[]): 'test' | 'flashcards' | 'codin
   return 'test';
 }
 
-function uniqueTypeLabels(items: TaskItemResponse[]): string[] {
-  const seen = new Set<string>();
-  for (const item of items) {
-    const label = TYPE_LABEL[item.type];
-    if (label) seen.add(label);
-    if (seen.size >= 2) break;
-  }
-  return [...seen];
-}
-
 /* ── Public Card ── */
 interface PublicCardProps {
   task: PublicTaskResponse;
@@ -70,9 +54,10 @@ interface PublicCardProps {
 }
 
 function PublicCard({ task, saved, onSave, onShare, saveMsg }: PublicCardProps) {
-  const langDisplay = LANG_DISPLAY[task.language] ?? task.language;
-  const langClass   = LANG_TAG_CLASS[task.language] ?? 'tag-dim';
-  const typeLabels  = uniqueTypeLabels(task.taskItems);
+  const langDisplay  = LANG_DISPLAY[task.language] ?? task.language;
+  const langClass    = LANG_TAG_CLASS[task.language] ?? 'tag-dim';
+  const category     = taskCategory(task.taskItems);
+  const categoryLabel = CATEGORY_LABEL[category];
 
   const firstName = task.owner?.firstName ?? '';
   const lastName  = task.owner?.lastName  ?? '';
@@ -87,9 +72,7 @@ function PublicCard({ task, saved, onSave, onShare, saveMsg }: PublicCardProps) 
 
       <div className="pc-card-tags">
         <span className={`tag ${langClass}`}>{langDisplay}</span>
-        {typeLabels.map(label => (
-          <span key={label} className="tag tag-dim">{label}</span>
-        ))}
+        <span className="tag tag-dim">{categoryLabel}</span>
       </div>
 
       <div className="pc-card-footer">
@@ -97,7 +80,7 @@ function PublicCard({ task, saved, onSave, onShare, saveMsg }: PublicCardProps) 
           <span className="pc-author-icon">◉</span>
           <span>{firstName} {lastName}</span>
         </div>
-        <div className="pc-card-right">
+        <div className="pc-card-bottom-row">
           <span className="pc-card-meta">
             {task.taskItems.length} питань · {formatDate(task.createdAt)}
           </span>

@@ -118,11 +118,10 @@
 /* ── CARD FOOTER ───────────────────────── */
 .pc-card-footer {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 6px;
   padding-top: 8px;
   border-top: 1px solid var(--border);
-  gap: 8px;
 }
 
 .pc-card-author {
@@ -142,11 +141,11 @@
   flex-shrink: 0;
 }
 
-.pc-card-right {
+.pc-card-bottom-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-  flex-shrink: 0;
 }
 
 .pc-card-meta {

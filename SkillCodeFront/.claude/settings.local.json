@@ -6,7 +6,10 @@
       "Bash(npm install *)",
       "Bash(ls d:/Diploma/)",
       "Read(//d/Diploma/**)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(ls -la \"d:\\\\\\\\Diploma\\\\\\\\Project\\\\\\\\SkillCode\")",
+      "Bash(find \"d:\\\\\\\\Diploma\\\\\\\\Project\\\\\\\\SkillCodeFront\\\\\\\\SkillCode\" -name \"*Controller*\" -type f)",
+      "Bash(ls -la \"d:\\\\\\\\Diploma\\\\\\\\Project\\\\\\\\SkillCodeFront\\\\\\\\SkillCode\")"
     ]
   }
 }

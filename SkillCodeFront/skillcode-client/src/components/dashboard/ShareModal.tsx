@@ -59,6 +59,7 @@ export default function ShareModal({ taskId, taskTitle, onClose, onSent }: Share
   const [groupLoading, setGroupLoading] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<GroupSearchResult | null>(null);
   const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
+  const [collectResults, setCollectResults] = useState(false);
 
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
@@ -198,7 +199,7 @@ export default function ShareModal({ taskId, taskTitle, onClose, onSent }: Share
       }
       setSending(true);
       try {
-        await shareTaskToGroup(accessToken, taskId, selectedGroup.id);
+        await shareTaskToGroup(accessToken, taskId, selectedGroup.id, collectResults);
         onSent?.();
         onClose();
       } catch (err) {
@@ -300,6 +301,19 @@ export default function ShareModal({ taskId, taskTitle, onClose, onSent }: Share
                     <button onClick={() => { setSelectedGroup(null); setGroupQuery(''); }}>×</button>
                   </div>
                 )}
+              </div>
+              <div className="grp-toggle-row" style={{ marginTop: 12 }}>
+                <span className="grp-toggle-label">Збирати результати учасників</span>
+                <button
+                  className={`grp-toggle${collectResults ? ' on' : ''}`}
+                  onClick={() => setCollectResults(v => !v)}
+                  type="button"
+                />
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--text-faint)', marginTop: 6 }}>
+                {collectResults
+                  ? '// ви зможете переглянути результати всіх учасників групи'
+                  : '// учасники бачать лише свої результати'}
               </div>
             </>
           )}

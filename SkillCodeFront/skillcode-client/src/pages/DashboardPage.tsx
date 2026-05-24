@@ -113,6 +113,8 @@ export default function DashboardPage() {
       setSolveTask(task);
       setSolveContextType('Group');
       setSolveContextId(groupId);
+      // Ensure /dashboard/groups?id=... is in history so navigate(-1) returns to the group
+      navigate(`/dashboard/groups?id=${groupId}`, { replace: true });
       goTo('solve');
     } catch (e) {
       console.error('Failed to load task for group:', e);

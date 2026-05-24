@@ -227,14 +227,18 @@ public class GroupService : IGroupService
     public async System.Threading.Tasks.Task LeaveGroupAsync(
         Guid groupId, Guid currentUserId, CancellationToken ct)
     {
-        _ = await _groupRepository.GetByIdAsync(groupId, ct)
+        var group = await _groupRepository.GetByIdWithDetailsAsync(groupId, ct)
             ?? throw new GroupNotFoundException(groupId);
 
-        var caller = await _groupRepository.GetMemberAsync(groupId, currentUserId, ct)
+        var caller = group.GroupMembers.FirstOrDefault(m => m.UserId == currentUserId)
             ?? throw new GroupForbiddenException();
 
         if (caller.Role == GroupRole.Owner)
-            throw new GroupForbiddenException("Власник не може покинути групу. Спочатку передайте права власника.");
+        {
+            var hasAdmin = group.GroupMembers.Any(m => m.Role == GroupRole.Admin);
+            if (!hasAdmin)
+                throw new GroupForbiddenException("Власник не може покинути групу, поки немає жодного адміністратора.");
+        }
 
         await _groupRepository.RemoveMemberAsync(caller, ct);
     }

@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Pagination from '../common/Pagination';
 import { useAuth } from '../../context/AuthContext';
 import { searchUsers } from '../../api/sharesApi';
@@ -208,11 +209,12 @@ function GroupTaskCard({ gt, currentUserId, currentUserRole, members, groupId, t
   const [loadingResults, setLoadingResults] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [removeError, setRemoveError] = useState('');
   const [viewingId, setViewingId] = useState<string | null>(null);
 
   const isSharer = gt.sharedByUser?.id === currentUserId;
   const canSeeAllResults = isSharer && gt.collectResults;
-  const canRemove = currentUserRole === 'Owner' || currentUserRole === 'Admin' || isSharer;
+  void currentUserRole;
 
   async function handleToggle() {
     if (!open && results === null) {
@@ -230,6 +232,10 @@ function GroupTaskCard({ gt, currentUserId, currentUserRole, members, groupId, t
   }
 
   async function doRemove() {
+    if (!isSharer) {
+      setRemoveError('Видалити завдання може лише той, хто його поділився.');
+      return;
+    }
     setRemoving(true);
     try {
       await removeGroupTask(token, groupId, gt.id);
@@ -308,19 +314,21 @@ function GroupTaskCard({ gt, currentUserId, currentUserRole, members, groupId, t
         >
           ▶ Пройти
         </button>
-        {canRemove && (
-          <button
-            className="grp-icon-btn"
-            title="Видалити завдання з групи"
-            onClick={e => { e.stopPropagation(); setConfirmRemove(true); }}
-            style={{ marginLeft: 4 }}
-            disabled={removing}
-          >
-            {removing ? '...' : '×'}
-          </button>
-        )}
+        <button
+          className="grp-icon-btn"
+          title="Видалити завдання з групи"
+          onClick={e => { e.stopPropagation(); setConfirmRemove(true); }}
+          style={{ marginLeft: 4 }}
+          disabled={removing}
+        >
+          {removing ? '...' : '×'}
+        </button>
         <span style={{ fontSize: 11, color: 'var(--text-faint)', marginLeft: 4 }}>{open ? '▲' : '▼'}</span>
       </div>
+
+      {removeError && (
+        <div style={{ padding: '4px 16px 6px', fontSize: 10, color: 'var(--red)' }}>{removeError}</div>
+      )}
 
       {open && (
         loadingResults
@@ -777,12 +785,19 @@ function GroupDetail({ groupId, token, currentUserId, onBack, onRun, onGroupDele
       await leaveGroup(token, groupId);
       onBack();
     } catch (e) {
-      if (e instanceof ApiError && e.status === 403) setActionError('Власник не може покинути групу');
+      if (e instanceof ApiError && e.status === 403) setActionError('Помилка виходу з групи');
       else setActionError('Помилка');
     }
   }
 
   function handleLeave() {
+    if (isOwner) {
+      const hasAdmin = detail.members.some(m => m.role === 'Admin');
+      if (!hasAdmin) {
+        setActionError('Ви не можете вийти з групи, поки група не матиме хоча б одного адміністратора. Будь ласка, призначте адміністратора групи.');
+        return;
+      }
+    }
     setConfirm({
       message: 'Точно вийти з групи?',
       label: 'Вийти',
@@ -958,12 +973,10 @@ function GroupDetail({ groupId, token, currentUserId, onBack, onRun, onGroupDele
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
-            {!isOwner && (
-              <button className="btn-ghost" style={{ flex: 1, justifyContent: 'center', fontSize: 11, color: 'var(--red)' }} onClick={handleLeave}>
-                Вийти з групи
-              </button>
-            )}
-            {isOwner && (
+            <button className="btn-ghost" style={{ flex: 1, justifyContent: 'center', fontSize: 11, color: 'var(--red)' }} onClick={handleLeave}>
+              Вийти з групи
+            </button>
+            {(isOwner || isAdmin) && (
               <button className="btn-ghost" style={{ flex: 1, justifyContent: 'center', fontSize: 11, color: 'var(--red)' }} onClick={handleDeleteGroup}>
                 Видалити групу
               </button>
@@ -1205,9 +1218,16 @@ interface Props {
 
 export default function GroupsPage({ onTakeTest, onViewAttempt }: Props) {
   const { accessToken, user } = useAuth();
+  const navigate  = useNavigate();
+  const location  = useLocation();
+
+  const selectedId = useMemo(
+    () => new URLSearchParams(location.search).get('id'),
+    [location.search],
+  );
+
   const [groups, setGroups] = useState<GroupSummaryResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -1226,6 +1246,13 @@ export default function GroupsPage({ onTakeTest, onViewAttempt }: Props) {
 
   useEffect(() => { load(); }, [load]);
 
+  // Reload groups list whenever returning from group detail
+  const prevSelectedIdRef = useRef(selectedId);
+  useEffect(() => {
+    if (prevSelectedIdRef.current !== null && selectedId === null) load();
+    prevSelectedIdRef.current = selectedId;
+  }, [selectedId, load]);
+
   const filtered = useMemo(() => {
     if (!search) return groups;
     return groups.filter(g => g.name.toLowerCase().includes(search.toLowerCase()));
@@ -1243,12 +1270,9 @@ export default function GroupsPage({ onTakeTest, onViewAttempt }: Props) {
           groupId={selectedId}
           token={accessToken}
           currentUserId={user.id}
-          onBack={() => setSelectedId(null)}
+          onBack={() => navigate('/dashboard/groups')}
           onRun={onTakeTest}
-          onGroupDeleted={() => {
-            setGroups(gs => gs.filter(g => g.id !== selectedId));
-            setSelectedId(null);
-          }}
+          onGroupDeleted={() => navigate('/dashboard/groups')}
           onViewAttempt={onViewAttempt}
         />
       </div>
@@ -1280,7 +1304,7 @@ export default function GroupsPage({ onTakeTest, onViewAttempt }: Props) {
         <>
           <div className="groups-grid">
             {paginated.map(g => (
-              <GroupCard key={g.id} group={g} onClick={() => setSelectedId(g.id)} />
+              <GroupCard key={g.id} group={g} onClick={() => navigate(`/dashboard/groups?id=${g.id}`)} />
             ))}
           </div>
           <Pagination page={page} totalPages={totalPages} onPage={setPage} />

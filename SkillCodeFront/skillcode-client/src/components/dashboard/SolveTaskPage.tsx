@@ -1322,7 +1322,13 @@ export default function SolveTaskPage({ task, onBack, onViewAttempt, previewMode
             taskTitle={task.title}
             onRestart={handleRestart}
             onBack={onBack}
-            backLabel={previewMode ? '← До повідомлень' : undefined}
+            backLabel={
+              previewMode
+                ? '← До повідомлень'
+                : contextType === 'Group'
+                ? '← До контенту групи'
+                : '← До мого контенту'
+            }
             onViewAttempt={onViewAttempt && finishData
               ? () => onViewAttempt({ task, questions: buildQuestionViews(), finishData })
               : undefined
