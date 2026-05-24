@@ -21,6 +21,15 @@ interface SessionState {
   cardIdx: number;
 }
 
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function sessionKey(userId: string, taskId: string) {
   return `sc_flashcards_${userId}_${taskId}`;
 }
@@ -69,7 +78,7 @@ export default function FlashCardTrainer({ task, token, userId, onBack, autoResu
         attemptId:         attempt.id,
         round:             1,
         cardStates:        Object.fromEntries(items.map(i => [i.id, 'donno' as CardState])),
-        currentRoundCards: items.map(i => i.id),
+        currentRoundCards: shuffle(items.map(i => i.id)),
         cardIdx:           0,
       };
       setSession(s);
@@ -108,7 +117,7 @@ export default function FlashCardTrainer({ task, token, userId, onBack, autoResu
           ...session,
           round:             session.round + 1,
           cardStates:        newStates,
-          currentRoundCards: remaining,
+          currentRoundCards: shuffle(remaining),
           cardIdx:           0,
         };
         setSession(nextSession);
