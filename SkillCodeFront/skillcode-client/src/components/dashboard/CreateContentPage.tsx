@@ -456,7 +456,7 @@ function Step1({ method, template, setTemplate, templates, loadingTemplates, onN
                   )}
                 </div>
                 <div className="template-name">{t.title}</div>
-                {t.isSystem && t.description && (
+                {t.description && (
                   <div className="template-system-desc">{t.description}</div>
                 )}
                 <div className="template-desc">{describeTemplate(t)}</div>
@@ -995,7 +995,7 @@ function Step2({ method, form, setForm, selectedTemplate, token, onBack, onDone 
 
   const [tasks, setTasks] = useState<TaskDraft[]>(() =>
     selectedTemplate
-      ? [...selectedTemplate.items].sort((a, b) => a.orderIndex - b.orderIndex).map(initDraft)
+      ? [...selectedTemplate.items].sort((a, b) => a.orderIndex - b.orderIndex).map(item => initDraft(item))
       : []
   );
   const [addType, setAddType]               = useState<TaskType>(allowedTypes[0]);
@@ -1404,11 +1404,21 @@ export default function CreateContentPage() {
 
   useEffect(() => {
     if (step !== 1 || !accessToken) return;
-    setLoadingTemplates(true);
-    getTemplates(accessToken)
-      .then(setTemplates)
-      .catch(() => setTemplates([]))
-      .finally(() => setLoadingTemplates(false));
+    const token = accessToken;
+    let cancelled = false;
+    async function load() {
+      setLoadingTemplates(true);
+      try {
+        const ts = await getTemplates(token);
+        if (!cancelled) setTemplates(ts);
+      } catch {
+        if (!cancelled) setTemplates([]);
+      } finally {
+        if (!cancelled) setLoadingTemplates(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
   }, [step, accessToken]);
 
   function handleTemplateCreated(tpl: TemplateDetailResponse) {
