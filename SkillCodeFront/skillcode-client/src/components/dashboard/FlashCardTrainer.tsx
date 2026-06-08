@@ -257,7 +257,7 @@ export default function FlashCardTrainer({ task, token, userId, onBack, autoResu
   const knownCount    = Object.values(session.cardStates).filter(s => s === 'know').length;
   const totalInRound  = session.currentRoundCards.length;
   const progressPct   = totalInRound > 0 ? (session.cardIdx / totalInRound) * 100 : 0;
-  const cardBack      = currentItem.explanation ?? '// визначення не задано';
+  const cardBack      = currentItem.correctAnswer ?? '// визначення не задано';
 
   return (
     <div className="st-wrapper">

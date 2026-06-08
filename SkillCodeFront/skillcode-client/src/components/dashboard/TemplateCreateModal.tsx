@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { TaskType, TemplateDetailResponse } from '../../types/template';
+import type { TaskType, TemplateDetailResponse, CreateTemplateRequest } from '../../types/template';
 import { createTemplate } from '../../api/templatesApi';
 import { ApiError } from '../../api/usersApi';
 import CustomSelect from '../common/CustomSelect';

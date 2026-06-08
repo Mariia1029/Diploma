@@ -398,16 +398,6 @@ export default function ProfilePage({ onLogout }: ProfilePageProps) {
               </div>
             )}
 
-            <div className="pf-sec-row" style={{ borderBottom: 'none' }}>
-              <div>
-                <div className="pf-sec-title">Двофакторна автентифікація</div>
-                <div className="pf-sec-sub">// не підключено</div>
-              </div>
-              <button className="pf-btn-ghost" style={{ height: 30, fontSize: 10 }}>
-                Підключити 2FA
-              </button>
-            </div>
-
           </div>
         </div>
 
