@@ -155,7 +155,7 @@ export default function DashboardPage() {
 
   function handleViewAttempt(input: ViewAttemptInput) {
     setViewData(input);
-    goTo('view-attempt');
+    navigate(PAGE_TO_PATH['view-attempt'], { replace: true });
   }
 
   function handleViewAttemptFromMine(input: ViewAttemptInput) {
