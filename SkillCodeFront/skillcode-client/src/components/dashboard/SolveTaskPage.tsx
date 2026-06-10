@@ -1269,10 +1269,18 @@ export default function SolveTaskPage({ task, onBack, onViewAttempt, previewMode
   };
 
   /* ── topbar shared across question and results views ── */
+  const pathLabel = previewMode
+    ? 'Повідомлення'
+    : contextType === 'Saved'
+    ? 'Збережений контент'
+    : contextType === 'Group'
+    ? 'Контент групи'
+    : 'Мій контент';
+
   const topbar = (
     <div className="st-topbar">
       <div className="st-topbar-title">
-        <span className="st-path">SkillCode / {previewMode ? 'Повідомлення' : 'Мій контент'} /</span> {task.title}
+        <span className="st-path">SkillCode / {pathLabel} /</span> {task.title}
       </div>
       {!done && (
         <div className="st-topbar-meta">
@@ -1325,6 +1333,8 @@ export default function SolveTaskPage({ task, onBack, onViewAttempt, previewMode
             backLabel={
               previewMode
                 ? '← До повідомлень'
+                : contextType === 'Saved'
+                ? '← До збереженого контенту'
                 : contextType === 'Group'
                 ? '← До контенту групи'
                 : '← До мого контенту'
