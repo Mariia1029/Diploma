@@ -119,6 +119,7 @@ public class AiService : IAiService
                         "Compare the student's answer to the correct answer: accept minor spelling variants, " +
                         "singular/plural differences, and equivalent morphological forms as fully correct. " +
                         "Award partial credit only when the answer is partially correct in meaning. " +
+                        "Write the feedback in Ukrainian. " +
                         "Return ONLY a valid JSON object with two fields: " +
                         "{\"score\": number, \"feedback\": \"string\"}. " +
                         "Score must be between 0 and maxScore inclusive. Feedback: 1–2 sentences."
@@ -175,7 +176,7 @@ public class AiService : IAiService
                 new
                 {
                     role = "system",
-                    content = "You are a strict but fair teacher grading student answers. Return ONLY a valid JSON object with exactly two fields: \"score\" (a number) and \"feedback\" (a string of 1–2 sentences explaining the grade). No extra text, no markdown."
+                    content = "You are a strict but fair teacher grading student answers. Write the feedback in Ukrainian. Return ONLY a valid JSON object with exactly two fields: \"score\" (a number) and \"feedback\" (a string of 1–2 sentences explaining the grade). No extra text, no markdown."
                 },
                 new
                 {
@@ -308,7 +309,7 @@ public class AiService : IAiService
 
         Content rules per task type:
         - SingleChoice / MultiChoice: balance the correct answer across all labels (A, B, C, D) — do not always use A or B as correct. For MultiChoice balance which combination is correct across different questions
-        - TrueFalse: balance correct_answer between "true" and "false" — do not always use the same value
+        - TrueFalse: correct_answer MUST be a JSON boolean — true or false (not a string, no quotes). Balance between true and false across questions — do not always use the same value
         - FillBlank: the question field must contain a full sentence with ___ where the missing word should be. The correct_answer must contain ONLY the missing word or phrase, nothing else
         - Ordering: options must be logically meaningful steps or items that can be ordered. correct_answer must be the correct sequence of labels
         - Matching: left and right sides must be meaningful pairs. correct_answer must correctly map left labels to right labels
@@ -375,7 +376,7 @@ public class AiService : IAiService
         TaskType.TrueFalse => new JsonObject
         {
             ["question"] = "",
-            ["correct_answer"] = "",
+            ["correct_answer"] = JsonValue.Create(false),
             ["explanation"] = ""
         },
         TaskType.FillBlank => new JsonObject

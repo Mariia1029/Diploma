@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SkillCode.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7be5bc3ffa20e448278b957ba10b142bd1d11f2b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f18ff34984fac7684a4eb927fc4b613e3ddcb0a2")]
 [assembly: System.Reflection.AssemblyProductAttribute("SkillCode.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SkillCode.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
