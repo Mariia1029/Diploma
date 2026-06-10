@@ -9,6 +9,8 @@ interface Props {
   userId: string;
   onBack: () => void;
   autoResume?: boolean;
+  contextType?: string;
+  previewMode?: boolean;
 }
 
 type CardState = 'know' | 'donno';
@@ -53,7 +55,7 @@ function clearSession(userId: string, taskId: string) {
 
 type Phase = 'init' | 'modal' | 'training' | 'saving' | 'done';
 
-export default function FlashCardTrainer({ task, token, userId, onBack, autoResume }: Props) {
+export default function FlashCardTrainer({ task, token, userId, onBack, autoResume, contextType = 'Personal', previewMode = false }: Props) {
   const items = task.taskItems.slice().sort((a, b) => a.orderIndex - b.orderIndex);
 
   const [phase,     setPhase]     = useState<Phase>('init');
@@ -73,9 +75,13 @@ export default function FlashCardTrainer({ task, token, userId, onBack, autoResu
 
   async function beginFresh() {
     try {
-      const attempt = await startAttempt(token, { taskId: task.id, contextType: 'Personal', contextId: null });
+      let attemptId = 'preview';
+      if (!previewMode) {
+        const attempt = await startAttempt(token, { taskId: task.id, contextType, contextId: null });
+        attemptId = attempt.id;
+      }
       const s: SessionState = {
-        attemptId:         attempt.id,
+        attemptId,
         round:             1,
         cardStates:        Object.fromEntries(items.map(i => [i.id, 'donno' as CardState])),
         currentRoundCards: shuffle(items.map(i => i.id)),
@@ -138,18 +144,20 @@ export default function FlashCardTrainer({ task, token, userId, onBack, autoResu
 
   async function completeTrainer(finalSession: SessionState) {
     setPhase('saving');
-    for (const item of items) {
+    if (!previewMode) {
+      for (const item of items) {
+        try {
+          await saveAnswer(token, finalSession.attemptId, {
+            taskItemId: item.id,
+            userAnswer: finalSession.cardStates[item.id] === 'know',
+            answeredAt: new Date().toISOString(),
+          });
+        } catch (e) { console.error(e); }
+      }
       try {
-        await saveAnswer(token, finalSession.attemptId, {
-          taskItemId: item.id,
-          userAnswer: finalSession.cardStates[item.id] === 'know',
-          answeredAt: new Date().toISOString(),
-        });
+        await finishAttempt(token, finalSession.attemptId);
       } catch (e) { console.error(e); }
     }
-    try {
-      await finishAttempt(token, finalSession.attemptId);
-    } catch (e) { console.error(e); }
 
     clearSession(userId, task.id);
     setDoneStats({
@@ -174,10 +182,26 @@ export default function FlashCardTrainer({ task, token, userId, onBack, autoResu
     await beginFresh();
   }
 
+  const pathLabel = previewMode
+    ? 'Повідомлення'
+    : contextType === 'Saved'
+    ? 'Збережений контент'
+    : contextType === 'Group'
+    ? 'Контент групи'
+    : 'Мій контент';
+
+  const backLabel = previewMode
+    ? '← До повідомлень'
+    : contextType === 'Saved'
+    ? '← До збереженого'
+    : contextType === 'Group'
+    ? '← До контенту групи'
+    : '← До мого контенту';
+
   const topbar = (
     <div className="st-topbar">
       <div className="st-topbar-title">
-        <span className="st-path">SkillCode / Мій контент /</span> {task.title}
+        <span className="st-path">SkillCode / {pathLabel} /</span> {task.title}
       </div>
     </div>
   );
@@ -239,7 +263,7 @@ export default function FlashCardTrainer({ task, token, userId, onBack, autoResu
             </div>
             <div className="st-results-actions">
               <button className="st-btn-ghost"   onClick={() => void handleRestart()}>↺ Пройти знову</button>
-              <button className="st-btn-primary" onClick={onBack}>← До мого контенту</button>
+              <button className="st-btn-primary" onClick={onBack}>{backLabel}</button>
             </div>
           </div>
         </div>
@@ -263,7 +287,7 @@ export default function FlashCardTrainer({ task, token, userId, onBack, autoResu
     <div className="st-wrapper">
       <div className="st-topbar">
         <div className="st-topbar-title">
-          <span className="st-path">SkillCode / Мій контент /</span> {task.title}
+          <span className="st-path">SkillCode / {pathLabel} /</span> {task.title}
           {session.round > 1 && (
             <span style={{ color: 'var(--text-faint)', marginLeft: 10 }}>// раунд {session.round}</span>
           )}

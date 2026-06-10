@@ -933,8 +933,8 @@ export default function SolveTaskPage({ task, onBack, onViewAttempt, previewMode
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timerExpired]);
 
-  /* FlashCard tasks are handled by FlashCardTrainer (except in preview mode — inline flow) */
-  if (isFlashCardTask && !previewMode) {
+  /* FlashCard tasks are always handled by FlashCardTrainer */
+  if (isFlashCardTask) {
     return (
       <FlashCardTrainer
         task={task}
@@ -942,6 +942,8 @@ export default function SolveTaskPage({ task, onBack, onViewAttempt, previewMode
         userId={user?.id ?? ''}
         onBack={onBack}
         autoResume={!!resumeAttemptId}
+        contextType={contextType}
+        previewMode={previewMode}
       />
     );
   }
